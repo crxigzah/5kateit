@@ -38,10 +38,10 @@ python -m pytest -q
 
 - runs the tests,
 - builds the app with PyInstaller on Windows and makes `TakeawayCodeFinder-Setup.exe` (Inno Setup, per-user install) plus a portable zip,
-- attaches both to a GitHub Release when you push a tag like `v1.0.0`,
+- on every push to `main`, publishes them as the GitHub Release `v<version>` using the version in `tcf/__init__.py` (bump it to cut a new release),
 - publishes `site/` to GitHub Pages (enable Pages → Source: GitHub Actions in repo settings).
 
-The download buttons on the site point to `releases/latest`, so a new tag updates them automatically.
+The download buttons on the site point to `releases/latest`, so each new release updates them automatically.
 
 ## Caveats
 
