@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takeaway Code Finder</title>
+<meta name="description" content="Free Windows app that finds Deliveroo, Just Eat and Uber Eats promo codes and tests them in your basket for you.">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* Layout: hero with download, the app screenshot as a "receipt", three steps, then FAQ. */
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#16202A; --muted:#5B6874; --line:#D5DCE3;
+  --accent:#2F55D4; --accent-ink:#FFFFFF; --stub:#FFF8DC; --stub-edge:#E8D58C;
+  --roo:#00A99D; --je:#E86F00; --ue:#06A35A; --good:#1D7F4E; --bad:#B3261E;
+  --f-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F151B; --panel:#18212A; --ink:#E7EDF2; --muted:#9AA8B5; --line:#2C3843;
+  --accent:#7F9CFF; --accent-ink:#0F151B; --stub:#2A2716; --stub-edge:#5A4F22;
+  --roo:#2FD6C8; --je:#FF9A3D; --ue:#3DDC8F; --good:#5FD39A; --bad:#FF8C83; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.08;margin:0;text-wrap:balance}
+p{margin:0}
+nav{display:flex;align-items:center;justify-content:space-between;padding-block:20px}
+.brand{display:flex;align-items:center;gap:10px;font:800 18px var(--f-display)}
+.brand img{width:34px;height:34px}
+nav a{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding-block:36px 56px}
+@media (max-width:820px){.hero{grid-template-columns:1fr}}
+.apps{display:flex;gap:14px;flex-wrap:wrap;font-weight:600;font-size:14px;color:var(--muted);margin-bottom:16px}
+.apps span{display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%}
+h1{font-size:clamp(36px,6vw,60px);font-weight:800;letter-spacing:-.025em}
+.lede{font-size:18px;color:var(--muted);max-width:52ch;margin-top:16px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 16px var(--f-body);padding:13px 22px;border-radius:10px;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--panel)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.small{font-size:13px;color:var(--muted)}
+.ticket{position:relative;background:var(--stub);border:1px solid var(--stub-edge);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:10px;font-variant-numeric:tabular-nums}
+.ticket::before,.ticket::after{content:"";position:absolute;left:-1px;width:16px;height:30px;background:var(--bg);border:1px solid var(--stub-edge);border-left:0;border-radius:0 30px 30px 0;top:calc(50% - 15px)}
+.ticket::after{left:auto;right:-1px;border:1px solid var(--stub-edge);border-right:0;border-radius:30px 0 0 30px}
+.line{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.line code{font:700 14px var(--f-mono)}
+.ok{color:var(--good);font-weight:600} .no{color:var(--bad);font-weight:600}
+.rule{border-top:2px dashed var(--stub-edge);margin-block:6px}
+.big{font:800 26px var(--f-display)}
+section{padding-block:48px}
+h2{font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.015em}
+.shot{margin-top:24px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--panel)}
+.shot img{display:block;width:100%;height:auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:26px;margin-top:26px}
+.step{display:flex;flex-direction:column;gap:8px;min-width:0}
+.step b{font:800 14px var(--f-display);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.step h3{font-size:20px}
+.step p{color:var(--muted)}
+.faq{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px 40px;margin-top:26px}
+.faq h3{font-size:18px;margin-bottom:6px}
+.faq p{color:var(--muted);max-width:60ch}
+footer{border-top:1px solid var(--line);padding-block:26px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand"><img src="icon.png" alt="">Takeaway Code Finder</div>
+    <a href="https://github.com/__REPO__">Source on GitHub</a>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <div class="apps">
+        <span><i class="dot" style="background:var(--roo)"></i>Deliveroo</span>
+        <span><i class="dot" style="background:var(--je)"></i>Just Eat</span>
+        <span><i class="dot" style="background:var(--ue)"></i>Uber Eats</span>
+      </div>
+      <h1>Stop typing dead promo codes into your basket.</h1>
+      <p class="lede">A free Windows app that pulls promo codes from UK deal sites, types each one into your checkout, and leaves the one that saves the most applied.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/__REPO__/releases/latest/download/TakeawayCodeFinder-Setup.exe">Download for Windows</a>
+        <a class="btn" href="https://github.com/__REPO__/releases/latest/download/TakeawayCodeFinder-portable.zip">Portable .zip</a>
+      </div>
+      <p class="small" style="margin-top:12px">Windows 10 or 11 with Microsoft Edge or Google Chrome. No admin rights needed.</p>
+    </div>
+    <div class="ticket" aria-label="Example test run">
+      <div class="line"><span>Basket total</span><span>£24.48</span></div>
+      <div class="rule"></div>
+      <div class="line"><code>FEAST10</code><span class="no">Not valid</span></div>
+      <div class="line"><code>EATS2025</code><span class="no">Expired</span></div>
+      <div class="line"><code>SAVE4NOW</code><span class="ok">−£4.00</span></div>
+      <div class="line"><code>TREAT6</code><span class="ok">−£6.00</span></div>
+      <div class="rule"></div>
+      <div class="line"><span>Applied <code>TREAT6</code></span><span class="big">£18.48</span></div>
+      <p class="small">Example run, not real codes.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><b>Step 1</b><h3>Open the app you're ordering from</h3><p>It opens Deliveroo, Just Eat or Uber Eats in your own Edge or Chrome. Log in once and it stays logged in.</p></div>
+      <div class="step"><b>Step 2</b><h3>Find codes</h3><p>It searches HotUKDeals, Latest Deals and Reddit, picks out anything that looks like a code and ranks them by how many places mention them.</p></div>
+      <div class="step"><b>Step 3</b><h3>Test at checkout</h3><p>With your basket at checkout, it tries each code in the promo box, reads what the site says, and re-applies the best one at the end.</p></div>
+    </div>
+    <div class="shot"><img src="screenshot.png" alt="Takeaway Code Finder window showing the three steps and a list of codes" width="1180" height="882"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <div class="faq">
+      <div><h3>Windows says "Windows protected your PC"</h3><p>That's SmartScreen. It shows for any new app that isn't code-signed. Click <b>More info</b> then <b>Run anyway</b>. The full source is on GitHub if you'd rather check it first.</p></div>
+      <div><h3>Will it get my account banned?</h3><p>It tests at most 15 codes per run, types at human speed and waits a few seconds between tries. But automated use is against all three apps' terms, so there's always some risk. Use it on your own account at your own risk.</p></div>
+      <div><h3>Why do so many codes fail?</h3><p>Most codes are one-off, tied to certain accounts, or new-customer only. That's the point of the app: it finds out in seconds instead of you trying them one by one.</p></div>
+      <div><h3>It can't find the promo box</h3><p>Sites change their checkout pages. The settings file shown at the bottom of the app lets you add the exact box and button to use, and updates will fix the defaults.</p></div>
+      <div><h3>Does it see my card details?</h3><p>No. It only reads the page text to spot the result and the total, and never clicks pay. Your logins, codes and history stay on your PC.</p></div>
+      <div><h3>Does it work on Mac?</h3><p>Not as a download yet. It's a Python app, so it runs on Mac or Linux from source with <code>python -m tcf</code>.</p></div>
+    </div>
+  </section>
+
+  <footer>Not affiliated with Deliveroo, Just Eat or Uber Eats. Codes come from public deal sites and are tested on your own account.</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest -q
+        env:
+          TCF_BROWSER: chromium
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - name: Version
+        shell: pwsh
+        run: |
+          $v = if ($env:GITHUB_REF_TYPE -eq "tag") { $env:GITHUB_REF_NAME.TrimStart("v") } else { "0.0.0-dev" }
+          "APP_VERSION=$v" >> $env:GITHUB_ENV
+          "__version__ = `"$v`"" | Set-Content tcf/__init__.py
+      - run: pyinstaller --noconfirm TakeawayCodeFinder.spec
+      - name: Zip portable build
+        shell: pwsh
+        run: Compress-Archive -Path dist/TakeawayCodeFinder/* -DestinationPath TakeawayCodeFinder-portable.zip
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; }
+          & $iscc "/DAppVersion=$($env:APP_VERSION -replace '-dev','')" installer.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TakeawayCodeFinder-windows
+          path: |
+            installer-out/TakeawayCodeFinder-Setup.exe
+            TakeawayCodeFinder-portable.zip
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            installer-out/TakeawayCodeFinder-Setup.exe
+            TakeawayCodeFinder-portable.zip
+
+  site:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Point download links at this repo
+        run: sed -i "s#__REPO__#${{ github.repository }}#g" site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

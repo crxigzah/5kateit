@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mock checkout</title></head>
+<body>
+<h1>Checkout</h1>
+<div>Margherita pizza £14.00</div>
+<div>Garlic bread £4.50</div>
+<div>Subtotal<br>£18.50</div>
+<div>Delivery fee<br>£2.49</div>
+<div id="discountRow"></div>
+<div><strong>Total</strong><br><span id="total">£20.99</span></div>
+<label for="notes">Notes for the restaurant</label><input id="notes" type="text">
+<button id="openPromo" type="button">Add a promo code</button>
+<div id="promoBox" hidden>
+  <input id="promo" type="text" placeholder="Enter promo code">
+  <button id="apply" type="button">Apply</button>
+  <p id="feedback"></p>
+</div>
+<script>
+const VALID = {SAVE5: 5, TENOFF: 2.10};
+const base = 20.99;
+let applied = null;
+document.getElementById('openPromo').onclick = () => document.getElementById('promoBox').hidden = false;
+function render() {
+  const off = applied ? VALID[applied] : 0;
+  document.getElementById('total').textContent = '£' + (base - off).toFixed(2);
+  document.getElementById('discountRow').innerHTML = applied
+    ? `Promo ${applied} applied: -£${off.toFixed(2)} <button type="button" id="rm">Remove</button>` : '';
+  if (applied) document.getElementById('rm').onclick = () => { applied = null; document.getElementById('feedback').textContent = ''; render(); };
+}
+document.getElementById('apply').onclick = () => {
+  const code = document.getElementById('promo').value.trim().toUpperCase();
+  setTimeout(() => {
+    const fb = document.getElementById('feedback');
+    if (VALID[code]) { applied = code; fb.textContent = ''; document.getElementById('promo').value = ''; }
+    else fb.textContent = code === 'OLDCODE' ? 'This promotion has expired.' : `Sorry, ${code} isn't valid.`;
+    render();
+  }, 600);
+};
+</script>
+</body></html>

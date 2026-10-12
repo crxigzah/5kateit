@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takeaway Code Finder</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/icon.ico">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">%</div>
+      <div><h1>Takeaway Code Finder</h1><p class="muted">Finds promo codes online and tries them in your basket.</p></div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="App"></nav>
+  </header>
+
+  <main class="grid">
+    <section class="panel steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <h2>Open <span class="site-name"></span></h2>
+          <p class="muted">Log in, add your food and go to the checkout page. You only need to log in the first time.</p>
+          <button id="btnOpen" class="btn primary">Open <span class="site-name"></span></button>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <h2>Find codes</h2>
+          <p class="muted">Searches HotUKDeals, Latest Deals and Reddit. Add the restaurant for more specific codes.</p>
+          <label for="query">Restaurant (optional)</label>
+          <div class="row">
+            <input id="query" placeholder="e.g. Domino's, Nando's" maxlength="60">
+            <button id="btnFind" class="btn">Find codes</button>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <h2>Test them at checkout</h2>
+          <p class="muted">Types each code into the promo box, reads the result and leaves the best one applied. Hands off the browser while it runs.</p>
+          <div class="row">
+            <button id="btnTest" class="btn primary">Test codes</button>
+            <button id="btnStop" class="btn ghost" hidden>Stop</button>
+          </div>
+          <div class="progress" id="progress" hidden><div class="bar" id="bar"></div><span id="progressText"></span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">+</div>
+        <div class="step-body">
+          <h2>Got a code already?</h2>
+          <form class="row" id="addForm">
+            <input id="addCode" placeholder="Paste a code" maxlength="24" autocomplete="off" aria-label="Code to add">
+            <button class="btn" type="submit">Add</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel codes">
+      <div class="panel-head">
+        <h2><span class="site-name"></span> codes</h2>
+        <div class="summary" id="summary"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Result</th><th>Saving</th><th>Found on</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden>No codes yet for <span class="site-name"></span>. Press <b>Find codes</b> or add one you've got.</div>
+    </section>
+
+    <section class="panel log-panel">
+      <div class="panel-head"><h2>Activity</h2><span class="pill" id="busy">Ready</span></div>
+      <ol class="log" id="log"></ol>
+    </section>
+  </main>
+  <footer class="muted foot">Settings file: <code id="cfgPath"></code>. Edit it to add CSS selectors if a site's promo box isn't found. Codes and logins stay on this PC.</footer>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
