@@ -1,4 +1,4 @@
-# PyInstaller build: pyinstaller TakeawayCodeFinder.spec
+# PyInstaller build: pyinstaller 5kateit.spec
 from PyInstaller.utils.hooks import collect_data_files
 
 datas = [("tcf/static", "tcf/static"), ("tcf/sites.json", "tcf")]
@@ -7,6 +7,6 @@ datas += collect_data_files("playwright")
 
 a = Analysis(["run.py"], pathex=["."], datas=datas, hiddenimports=[], excludes=["tkinter"])
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="TakeawayCodeFinder",
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="5kateit",
           console=False, icon="tcf/static/icon.ico")
-coll = COLLECT(exe, a.binaries, a.datas, name="TakeawayCodeFinder")
+coll = COLLECT(exe, a.binaries, a.datas, name="5kateit")

@@ -7,7 +7,7 @@ import threading
 import time
 from pathlib import Path
 
-APP_NAME = "TakeawayCodeFinder"
+APP_NAME = "5kateit"
 
 
 def resource_dir() -> Path:

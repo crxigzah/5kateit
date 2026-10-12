@@ -13,7 +13,7 @@ from werkzeug.serving import make_server
 from .server import create_app
 from .store import data_dir
 
-TITLE = "Takeaway Code Finder"
+TITLE = "5kateit"
 
 
 def free_port():

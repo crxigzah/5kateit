@@ -1,4 +1,4 @@
-# Takeaway Code Finder
+# 5kateit
 
 Windows desktop app that finds promo codes for **Deliveroo**, **Just Eat** and **Uber Eats** on UK deal sites and tests them in the checkout's promo box, then leaves the best one applied.
 
@@ -22,7 +22,7 @@ Useful environment variables: `TCF_BROWSER` (`msedge`, `chrome`, `chromium`), `T
 
 ## When a site changes
 
-The user's copy of the config is at `%APPDATA%\TakeawayCodeFinder\sites.json`. If the promo box isn't found, set `input_selector`, `apply_selector` or `open_selector` for that site to a CSS selector (right-click the box in the browser → Inspect). Success/failure wording is matched with the regexes under `defaults`.
+The user's copy of the config is at `%APPDATA%\5kateit\sites.json`. If the promo box isn't found, set `input_selector`, `apply_selector` or `open_selector` for that site to a CSS selector (right-click the box in the browser → Inspect). Success/failure wording is matched with the regexes under `defaults`.
 
 ## Tests
 
@@ -37,7 +37,7 @@ python -m pytest -q
 `.github/workflows/build.yml`:
 
 - runs the tests,
-- builds the app with PyInstaller on Windows and makes `TakeawayCodeFinder-Setup.exe` (Inno Setup, per-user install) plus a portable zip,
+- builds the app with PyInstaller on Windows and makes `5kateit-Setup.exe` (Inno Setup, per-user install) plus a portable zip,
 - on every push to `main`, publishes them as the GitHub Release `v<version>` using the version in `tcf/__init__.py` (bump it to cut a new release),
 - publishes `site/` to GitHub Pages (enable Pages → Source: GitHub Actions in repo settings).
 

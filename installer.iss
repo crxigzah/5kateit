@@ -4,31 +4,31 @@
 #endif
 
 [Setup]
-AppId={{6B4E2F0A-6C3D-4E8B-9C59-2D1E7A3F5B10}
-AppName=Takeaway Code Finder
+AppId={{3F1C9A52-8E47-4D2B-A6B1-5C0E7D9F2A84}
+AppName=5kateit
 AppVersion={#AppVersion}
-AppPublisher=Takeaway Code Finder
-DefaultDirName={localappdata}\Programs\TakeawayCodeFinder
-DefaultGroupName=Takeaway Code Finder
+AppPublisher=5kable
+DefaultDirName={localappdata}\Programs\5kateit
+DefaultGroupName=5kateit
 PrivilegesRequired=lowest
 OutputDir=installer-out
-OutputBaseFilename=TakeawayCodeFinder-Setup
+OutputBaseFilename=5kateit-Setup
 SetupIconFile=tcf\static\icon.ico
-UninstallDisplayIcon={app}\TakeawayCodeFinder.exe
+UninstallDisplayIcon={app}\5kateit.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "dist\TakeawayCodeFinder\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
+Source: "dist\5kateit\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Takeaway Code Finder"; Filename: "{app}\TakeawayCodeFinder.exe"
-Name: "{autodesktop}\Takeaway Code Finder"; Filename: "{app}\TakeawayCodeFinder.exe"; Tasks: desktopicon
+Name: "{autoprograms}\5kateit"; Filename: "{app}\5kateit.exe"
+Name: "{autodesktop}\5kateit"; Filename: "{app}\5kateit.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
 
 [Run]
-Filename: "{app}\TakeawayCodeFinder.exe"; Description: "Open Takeaway Code Finder"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\5kateit.exe"; Description: "Open 5kateit"; Flags: nowait postinstall skipifsilent
