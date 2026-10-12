@@ -98,7 +98,9 @@ class Engine:
                 self.ctx = self.pw.chromium.launch_persistent_context(
                     str(profile_dir()), channel=ch, headless=headless, no_viewport=True,
                     ignore_default_args=["--enable-automation"],
-                    args=["--disable-blink-features=AutomationControlled"])
+                    args=["--disable-blink-features=AutomationControlled",
+                          # keep the user's synced extensions (coupon/cashback add-ons) out of this profile
+                          "--disable-sync", "--disable-features=msImplicitSignin,msEdgeSyncConsent"])
                 self.ctx.on("close", lambda *_: self._on_closed())
                 self.log(f"Opened {ch or 'Chromium'} with your saved profile.")
                 self.emit("status", self.status())

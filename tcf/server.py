@@ -2,6 +2,7 @@
 import json
 import queue
 import threading
+import time
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 
@@ -26,6 +27,14 @@ def create_app():
     wallet = Wallet()
     engine = Engine(wallet, emit)
     app.engine = engine
+    # The app window keeps /api/events open; __main__ exits once it has been gone a while.
+    app.ui_state = {"clients": 0, "ever": False, "last_change": time.time()}
+
+    def ui_connected(delta):
+        with sub_lock:
+            app.ui_state["clients"] += delta
+            app.ui_state["ever"] = True
+            app.ui_state["last_change"] = time.time()
     static = resource_dir() / "static"
 
     def site_ok(site):
@@ -112,11 +121,12 @@ def create_app():
             subscribers.append(q)
 
         def stream():
+            ui_connected(+1)  # inside the generator so it always pairs with the finally below
             try:
                 yield "retry: 2000\n\n"
                 while True:
                     try:
-                        msg = q.get(timeout=15)
+                        msg = q.get(timeout=4)  # short ping so a closed window is noticed quickly
                         yield f"data: {json.dumps(msg)}\n\n"
                     except queue.Empty:
                         yield ": ping\n\n"
@@ -124,6 +134,7 @@ def create_app():
                 with sub_lock:
                     if q in subscribers:
                         subscribers.remove(q)
+                ui_connected(-1)
 
         return Response(stream(), mimetype="text/event-stream",
                         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
