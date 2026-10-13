@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snackhack</title>
-<meta name="description" content="Snackhack finds Deliveroo, Just Eat and Uber Eats promo codes and tries them in your basket for you. Free for Windows.">
+<meta name="description" content="Snackhack is a free browser extension that finds Deliveroo, Just Eat and Uber Eats promo codes and tries them in your basket for you.">
 <meta property="og:title" content="Snackhack: hack your takeaway bill">
 <meta property="og:description" content="Finds Deliveroo, Just Eat and Uber Eats promo codes and tries them at checkout for you.">
 <meta property="og:image" content="apple-touch-icon.png">
@@ -16,7 +16,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&family=JetBrains+Mono:wght@700;800&display=swap">
 <style>
-/* Layout: hero (pitch + gliding coupons), steps, screenshot, apps & memberships, FAQ, download. */
+/* Layout: hero (pitch + gliding coupons), how it works beside the side panel, memberships, install steps, FAQ, CTA. */
+.how-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:40px;align-items:start;margin-top:36px}
+@media (max-width:900px){.how-grid{grid-template-columns:1fr}}
+.how-grid .steps{grid-template-columns:1fr;margin-top:0}
+.panel-shot{border-radius:24px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);max-width:380px;width:100%;justify-self:center;background:var(--surface)}
+.panel-shot img{display:block;width:100%;height:auto}
+.install{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:32px;counter-reset:inst;list-style:none;padding:0}
+@media (max-width:900px){.install{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.install{grid-template-columns:1fr}}
+.install li{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.install li::before{counter-increment:inst;content:counter(inst);width:32px;height:32px;border-radius:10px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800}
+.install b{font-size:16px}
+.install p{color:var(--muted);font-size:14.5px}
+.install code{font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:1px 6px;border-radius:6px;overflow-wrap:anywhere}
+.note{margin-top:18px;color:var(--muted);font-size:14.5px}
 :root{
   --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#FBF0F4; --ink:#26142B; --muted:#7A6474; --line:#F0E1E8;
   --brand:#E8336D; --brand-hover:#CC2259; --brand-ink:#FFFFFF; --brand-soft:#FFE4EC; --brand-line:#FFC2D5;
@@ -162,7 +176,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <nav class="nav-links">
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#faq">FAQ</a>
-      <a class="btn primary sm" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">Download</a>
+      <a class="btn primary sm" href="#install">Get it free</a>
     </nav>
   </div>
 </header>
@@ -176,15 +190,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         <span class="pill"><i class="dot" style="background:var(--ue)"></i>Uber Eats</span>
       </div>
       <h1>Hack your <span class="hl">takeaway bill.</span></h1>
-      <p class="lede">Snackhack finds promo codes for your takeaway, tries every one in your basket, and keeps the one that saves you the most. You just hit order.</p>
+      <p class="lede">A free browser extension that finds promo codes for your takeaway, tries every one in your basket, and keeps the one that saves you the most. You just hit order.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">
+        <a class="btn primary" href="#install">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
-          Download for Windows
+          Add to your browser
         </a>
         <a class="btn" href="#how">See how it works</a>
       </div>
-      <p class="fine">Free · Windows 10 &amp; 11 · No account, no admin rights</p>
+      <p class="fine">Free · Chrome, Edge, Brave &amp; Opera · No account needed</p>
     </div>
 
     <div class="stage" aria-label="Example: four codes tried, the best one kept">
@@ -199,16 +213,18 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="wrap">
       <span class="eyebrow">How it works</span>
       <h2 class="sec-title">Three taps. It does the typing.</h2>
-      <div class="steps">
-        <div class="step"><span class="step-n">1</span><h3>Open your app</h3><p>Snackhack opens Deliveroo, Just Eat or Uber Eats in your own Edge or Chrome. Log in once, fill your basket, head to checkout.</p></div>
-        <div class="step"><span class="step-n">2</span><h3>Find codes</h3><p>It searches HotUKDeals, Latest Deals and Reddit and ranks what it finds. Add a restaurant name for more specific deals.</p></div>
-        <div class="step"><span class="step-n">3</span><h3>Try them all</h3><p>Each code goes into the promo box. Snackhack reads the result, checks the new total, and leaves the best one applied.</p></div>
-      </div>
-      <div class="shot">
-        <picture>
-          <source srcset="screenshot-dark.webp" media="(prefers-color-scheme: dark)">
-          <img src="screenshot-light.webp" alt="The Snackhack app showing a £6 best code, a guided three-step panel and coupon cards" width="1770" height="1200" loading="lazy">
-        </picture>
+      <div class="how-grid">
+        <div class="steps">
+          <div class="step"><span class="step-n">1</span><h3>Shop like normal</h3><p>Fill your basket on Deliveroo, Just Eat or Uber Eats in your own browser and head to checkout. No new logins, nothing to switch to.</p></div>
+          <div class="step"><span class="step-n">2</span><h3>Open Snackhack and find codes</h3><p>Click the Snackhack icon and it opens beside the page. It searches HotUKDeals, Latest Deals and Reddit and ranks what it finds.</p></div>
+          <div class="step"><span class="step-n">3</span><h3>Hit Try codes</h3><p>Each code goes into the promo box. Snackhack reads the result, checks the new total, and leaves the best one applied.</p></div>
+        </div>
+        <div class="panel-shot">
+          <picture>
+            <source srcset="panel-dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="panel-light.webp" alt="The Snackhack side panel showing £5 off with SAVE5, the Deliveroo Plus switch and coupon cards" width="800" height="2426" loading="lazy">
+          </picture>
+        </div>
       </div>
     </div>
   </section>
@@ -226,17 +242,37 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     </div>
   </section>
 
+  <section id="install">
+    <div class="wrap">
+      <span class="eyebrow">Install</span>
+      <h2 class="sec-title">Add it in about a minute.</h2>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/__REPO__/releases/latest/download/Snackhack-extension.zip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+          Download Snackhack
+        </a>
+      </div>
+      <ol class="install">
+        <li><b>Unzip it</b><p>Right-click <code>Snackhack-extension.zip</code> and choose Extract All. Keep the folder somewhere it won't get deleted, like Documents.</p></li>
+        <li><b>Open extensions</b><p>Go to <code>chrome://extensions</code> in Chrome, Brave or Opera, or <code>edge://extensions</code> in Edge.</p></li>
+        <li><b>Load it</b><p>Turn on <b>Developer mode</b>, click <b>Load unpacked</b> and pick the Snackhack folder.</p></li>
+        <li><b>Pin it</b><p>Click the puzzle-piece icon in the toolbar and pin Snackhack so it's one click away at checkout.</p></li>
+      </ol>
+      <p class="note">Snackhack is on its way to the Chrome Web Store and Edge Add-ons. Once it's listed, installing is a single click and updates happen automatically.</p>
+    </div>
+  </section>
+
   <section id="faq">
     <div class="wrap">
       <span class="eyebrow">FAQ</span>
       <h2 class="sec-title">Good to know</h2>
       <div class="faq">
-        <details><summary>Windows says "Windows protected your PC"</summary><p>That's SmartScreen. It shows for new apps that aren't code-signed yet. Click <b>More info</b>, then <b>Run anyway</b>. The full source is on GitHub if you'd like to check it first.</p></details>
+        <details><summary>Which browsers does it work in?</summary><p>Chrome, Edge, Brave, Opera, Opera GX and Vivaldi. Anything built on Chromium. In Opera it opens as a popup rather than a side panel. Firefox and Safari aren't supported yet.</p></details>
         <details><summary>Could it get my account banned?</summary><p>It tries at most 15 codes per run, types at human speed and pauses between tries. Automated use is still against the apps' terms, so there's always some risk. Use it on your own account at your own risk.</p></details>
         <details><summary>Why do so many codes fail?</summary><p>Most codes are one-offs, tied to certain accounts, or for new customers only. That's the point: Snackhack finds out in seconds instead of you trying them one by one.</p></details>
-        <details><summary>It can't find the promo box</summary><p>Checkout pages change. The settings file shown in the app lets you point it at the right box, and updates fix the defaults. Send the Activity log in an issue on GitHub and it'll get sorted.</p></details>
-        <details><summary>Does it see my card details?</summary><p>No. It only reads the page text to spot the result and the total, and it never presses pay. Your logins, codes and history stay on your PC.</p></details>
-        <details><summary>Is there a Mac version?</summary><p>Not as a download yet. It's a Python app, so it runs on Mac or Linux from source with <code>python -m tcf</code>.</p></details>
+        <details><summary>It can't find the promo box</summary><p>Make sure you're on the checkout page. Checkout pages change now and then, so if it still can't find it, open an issue on GitHub with what the Activity log says and it'll get fixed in an update.</p></details>
+        <details><summary>What can it see?</summary><p>It only runs on Deliveroo, Just Eat and Uber Eats pages, and only when you press a button. It reads the page text to spot the result and the total, and it never presses pay. Your codes and settings stay in your browser. <a href="privacy.html">Privacy</a>.</p></details>
+        <details><summary>Why does it need Developer mode?</summary><p>Only until Snackhack is in the Chrome Web Store and Edge Add-ons. Browsers ask for it when you install an extension from a file. After that it's a normal one-click install.</p></details>
       </div>
     </div>
   </section>
@@ -245,10 +281,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="wrap">
       <div class="final">
         <h2>Next order's cheaper.</h2>
-        <p>Free download. Takes a minute to set up.</p>
+        <p>Free extension. Takes a minute to set up.</p>
         <div class="cta">
-          <a class="btn light" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">Download for Windows</a>
-          <a class="btn outline" href="https://github.com/__REPO__/releases/latest/download/Snackhack-portable.zip">Portable .zip</a>
+          <a class="btn light" href="https://github.com/__REPO__/releases/latest/download/Snackhack-extension.zip">Download Snackhack</a>
+          <a class="btn outline" href="#install">How to install</a>
         </div>
       </div>
     </div>
@@ -258,7 +294,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <footer>
   <div class="wrap">
     <span>© Snackhack. Not affiliated with Deliveroo, Just Eat or Uber Eats.</span>
-    <a href="https://github.com/__REPO__">Source on GitHub</a>
+    <span><a href="privacy.html">Privacy</a> · <a href="https://github.com/__REPO__">Source on GitHub</a> · <a href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">Windows app (classic)</a></span>
   </div>
 </footer>
 </body>

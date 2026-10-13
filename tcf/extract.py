@@ -54,7 +54,10 @@ def find_codes(text: str):
             code = m.group(1).strip("-_")
             if not looks_like_code(code):
                 continue
-            start, end = max(0, m.start() - 90), min(len(text), m.end() + 90)
+            # Look up to 90 characters either side, but not past the edge of this post/paragraph.
+            p0, p1 = text.rfind("\n\n", 0, m.start()), text.find("\n\n", m.end())
+            start = max(0, m.start() - 90, 0 if p0 == -1 else p0 + 2)
+            end = min(len(text), m.end() + 90, len(text) if p1 == -1 else p1)
             ctx = " ".join(text[start:end].split())
             entry = found.setdefault(code, {"hits": 0, "context": ctx, "expired_hint": False,
                                             "member_only": False, "new_only": False})

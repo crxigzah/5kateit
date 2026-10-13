@@ -4,6 +4,24 @@
 
 Windows desktop app that finds promo codes for **Deliveroo**, **Just Eat** and **Uber Eats** on UK deal sites and tests them in the checkout's promo box, then leaves the best one applied.
 
+## Browser extension (main version)
+
+`extension/` is a Manifest V3 extension for Chrome, Edge, Brave, Opera and Vivaldi. Click the toolbar icon to open the Snackhack side panel (a popup in browsers without side panels).
+
+- **Find codes** – the panel fetches HotUKDeals, Latest Deals and Reddit (extension host permissions, no cookies sent) and extracts codes with `lib/extract.js`.
+- **Try codes** – on a Deliveroo, Just Eat or Uber Eats tab, `content/tester.js` is injected with `chrome.scripting`. It finds the promo box, types each code, reads the result and total, and leaves the best one applied.
+- Codes, membership switches and the log live in `chrome.storage.local`. Nothing is sent anywhere else.
+
+Try it locally: `chrome://extensions` → Developer mode → Load unpacked → pick `extension/`.
+
+Tests: `node --test extension/test/*.test.js` (extraction) and `python -m pytest tests/test_extension_*.py` (the in-page tester and the full side panel, run with the real extension loaded in Chromium against a mock checkout).
+
+Publishing: upload `Snackhack-extension.zip` from the latest release to the Chrome Web Store / Edge Add-ons. The privacy policy is `site/privacy.html`. Keep `extension/manifest.json` and `tcf/__init__.py` on the same version (CI checks this).
+
+## Windows app (classic)
+
+The original desktop app (`tcf/`) still builds as `Snackhack-Setup.exe`. It does the same thing but drives a separate browser window.
+
 ## How it works
 
 1. **Open** – launches your installed Edge (or Chrome) through Playwright with a dedicated, saved profile. You log in and fill your basket yourself.

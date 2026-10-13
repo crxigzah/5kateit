@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snackhack Privacy</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<style>
+:root{--bg:#FBF6F8;--surface:#FFFFFF;--ink:#26142B;--muted:#7A6474;--line:#F0E1E8;--brand:#E8336D}
+@media (prefers-color-scheme: dark){:root{--bg:#160D17;--surface:#21142A;--ink:#FFF0F5;--muted:#C7A9BC;--line:#3A2643;--brand:#FF5C8F;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:40px 20px 60px}
+a{color:var(--brand)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:19px}
+.brand img{width:34px;height:34px;border-radius:10px}
+h1{font-size:36px;letter-spacing:-.03em;margin:30px 0 6px}
+h2{font-size:19px;margin:28px 0 6px}
+p,li{color:var(--muted)}
+.updated{font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="./"><img src="logo.svg" alt="">Snackhack</a>
+  <h1>Privacy</h1>
+  <p class="updated">Last updated 13 October 2026</p>
+  <p>Snackhack doesn't collect, sell or send your personal data anywhere. There's no account and no analytics.</p>
+  <h2>What stays in your browser</h2>
+  <ul>
+    <li>The promo codes it finds or you paste in, and whether each one worked.</li>
+    <li>Your settings, such as whether you have Deliveroo Plus, Just Eat+ or Uber One.</li>
+    <li>A short activity log.</li>
+  </ul>
+  <p>These are kept in your browser's extension storage on your device. Removing the extension deletes them.</p>
+  <h2>Pages it reads</h2>
+  <p>Snackhack only works on Deliveroo, Just Eat and Uber Eats, and only when you press a button in it. It reads the checkout page's text to find the promo box, see whether a code worked and read the total. It never reads or fills in payment details and never places an order.</p>
+  <h2>Sites it contacts</h2>
+  <p>When you press Find codes, Snackhack loads public search pages from HotUKDeals, Latest Deals and Reddit to look for codes. Nothing about you is sent to them beyond a normal page request, and no cookies are sent.</p>
+  <h2>Questions</h2>
+  <p>Open an issue on <a href="https://github.com/__REPO__">GitHub</a>.</p>
+</div>
+</body>
+</html>

@@ -64,3 +64,8 @@ def test_flags_member_and_new_customer_codes():
 def test_uber_one_and_just_eat_plus_count_as_member():
     assert extract.find_codes("Uber One members get code ONEEATS15")["ONEEATS15"]["member_only"]
     assert extract.find_codes("Just Eat+ exclusive: code JEPLUS4")["JEPLUS4"]["member_only"]
+
+
+def test_tags_stay_within_their_own_post():
+    found = extract.find_codes("Deliveroo Plus members: use code PLUSONLY9\n\nAnyone: £5 off with code SAVE5NOW")
+    assert found["PLUSONLY9"]["member_only"] and not found["SAVE5NOW"]["member_only"]

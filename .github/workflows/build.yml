@@ -22,6 +22,16 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Extension unit tests
+        run: node --test extension/test/*.test.js
+      - name: Extension and app versions match
+        run: |
+          app=$(python -c "import tcf; print(tcf.__version__)")
+          ext=$(python -c "import json; print(json.load(open('extension/manifest.json'))['version'])")
+          test "$app" = "$ext" || { echo "tcf/__init__.py is $app but extension/manifest.json is $ext"; exit 1; }
       - run: python -m pytest -q
 
   windows:
@@ -43,6 +53,13 @@ jobs:
       - name: Zip portable build
         shell: pwsh
         run: Compress-Archive -Path dist/Snackhack/* -DestinationPath Snackhack-portable.zip
+      - name: Zip extension
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force ext-out | Out-Null
+          Copy-Item -Recurse extension/* ext-out/ -Exclude test
+          Remove-Item -Recurse -Force ext-out/test -ErrorAction SilentlyContinue
+          Compress-Archive -Path ext-out/* -DestinationPath Snackhack-extension.zip
       - name: Build installer
         shell: pwsh
         run: |
@@ -55,6 +72,7 @@ jobs:
           path: |
             installer-out/Snackhack-Setup.exe
             Snackhack-portable.zip
+            Snackhack-extension.zip
       # A push to main publishes (or updates) the release for the version in tcf/__init__.py.
       # Bump that version to cut a new release.
       - name: Publish release
@@ -66,6 +84,7 @@ jobs:
           name: Snackhack ${{ env.APP_VERSION }}
           make_latest: true
           files: |
+            Snackhack-extension.zip
             installer-out/Snackhack-Setup.exe
             Snackhack-portable.zip
 
@@ -79,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Point download links at this repo
-        run: sed -i "s#__REPO__#${{ github.repository }}#g" site/index.html
+        run: sed -i "s#__REPO__#${{ github.repository }}#g" site/*.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

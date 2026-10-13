@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snackhack</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <img class="brand-mark" src="icons/logo.svg" alt="" width="34" height="34">
+    <div class="brand-text"><span class="wordmark">Snackhack</span><span class="tagline">Hack your takeaway bill</span></div>
+  </header>
+
+  <nav class="switcher" id="tabs" role="tablist" aria-label="Delivery app"></nav>
+
+  <section class="card where" id="where"></section>
+
+  <section class="card hero" id="hero"></section>
+
+  <section class="card actions">
+    <div class="field-row">
+      <input id="query" placeholder="Restaurant (optional)" maxlength="60" aria-label="Restaurant, optional">
+      <button id="btnFind" class="btn">Find codes</button>
+    </div>
+    <div class="field-row">
+      <button id="btnTest" class="btn primary grow">Try codes</button>
+      <button id="btnStop" class="btn ghost" hidden>Stop</button>
+    </div>
+  </section>
+
+  <section class="account" role="group" aria-labelledby="accTitle">
+    <h3 id="accTitle">About you on <span class="site-name"></span></h3>
+    <label class="switch"><input type="checkbox" id="accMember"><span class="track" aria-hidden="true"></span><span>I have <b id="memberName"></b></span></label>
+    <label class="switch"><input type="checkbox" id="accNew"><span class="track" aria-hidden="true"></span><span>I'm new to <span class="site-name"></span></span></label>
+    <p class="hint" id="accHint"></p>
+  </section>
+
+  <div class="list-head">
+    <h2><span class="site-name"></span> codes</h2>
+  </div>
+  <div class="filters" id="filters" role="tablist" aria-label="Filter codes"></div>
+  <div class="coupons" id="coupons"></div>
+  <div class="empty" id="empty" hidden></div>
+
+  <form class="add" id="addForm">
+    <label for="addCode">Got a code already?</label>
+    <div class="field-row">
+      <input id="addCode" placeholder="Paste it here" maxlength="24" autocomplete="off">
+      <button class="btn soft" type="submit">Add</button>
+    </div>
+  </form>
+
+  <details class="card activity" id="activity">
+    <summary><span class="pulse" id="busyDot"></span><span id="lastLog">Ready when you are</span><span class="act-label">Activity</span></summary>
+    <ol class="log" id="log"></ol>
+  </details>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="lib/config.js"></script>
+<script src="lib/extract.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>
