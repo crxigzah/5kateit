@@ -7,14 +7,14 @@ const FILTERS = [["all","All"],["works","Working"],["todo","To try"],["rejected"
 
 let S = {sites:{}, codes:[], accounts:{}, status:{busy:null, browser:false}, site:null, progress:null,
          filter:"all", lastLog:null, opened:{}};
-try { S.site = localStorage.getItem("5k.site"); } catch (e) {}
+try { S.site = localStorage.getItem("sh.site"); } catch (e) {}
 
 async function api(path, body, method = "POST") {
   let r, j = {};
   try {
     r = await fetch(path, {method, headers:{"Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined});
     j = await r.json().catch(() => ({}));
-  } catch (e) { toast("Lost connection to 5kateit. Is it still running?"); return {}; }
+  } catch (e) { toast("Lost connection to Snackhack. Is it still running?"); return {}; }
   if (!r.ok || j.ok === false) toast(j.error || `Something went wrong (${r.status})`);
   return j;
 }
@@ -39,7 +39,7 @@ function renderTabs() {
   $("tabs").innerHTML = Object.entries(S.sites).map(([k, s]) =>
     `<button class="tab" role="tab" data-k="${k}" aria-selected="${k === S.site}"><span class="dot d-${k}"></span>${esc(s.name)}</button>`).join("");
   $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => {
-    S.site = b.dataset.k; try { localStorage.setItem("5k.site", S.site); } catch (e) {}
+    S.site = b.dataset.k; try { localStorage.setItem("sh.site", S.site); } catch (e) {}
     renderAll();
   });
   document.querySelectorAll(".site-name").forEach(n => n.textContent = site().name || "");

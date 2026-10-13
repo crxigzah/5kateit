@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5kateit</title>
-<meta name="description" content="5kateit finds Deliveroo, Just Eat and Uber Eats promo codes and tries them in your basket for you. Free for Windows.">
-<meta property="og:title" content="5kateit: glide past full price">
+<title>Snackhack</title>
+<meta name="description" content="Snackhack finds Deliveroo, Just Eat and Uber Eats promo codes and tries them in your basket for you. Free for Windows.">
+<meta property="og:title" content="Snackhack: hack your takeaway bill">
 <meta property="og:description" content="Finds Deliveroo, Just Eat and Uber Eats promo codes and tries them at checkout for you.">
 <meta property="og:image" content="apple-touch-icon.png">
-<meta name="theme-color" content="#4B3CFA">
+<meta name="theme-color" content="#E8336D">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -18,31 +18,31 @@
 <style>
 /* Layout: hero (pitch + gliding coupons), steps, screenshot, apps & memberships, FAQ, download. */
 :root{
-  --bg:#F4F4FA; --surface:#FFFFFF; --surface-2:#F0EFFA; --ink:#17153A; --muted:#66658A; --line:#E4E3F1;
-  --brand:#4B3CFA; --brand-hover:#3A2BE8; --brand-ink:#FFFFFF; --brand-soft:#ECEAFF; --brand-line:#CFCAFF;
+  --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#FBF0F4; --ink:#26142B; --muted:#7A6474; --line:#F0E1E8;
+  --brand:#E8336D; --brand-hover:#CC2259; --brand-ink:#FFFFFF; --brand-soft:#FFE4EC; --brand-line:#FFC2D5;
   --sun:#FFC83D; --sun-soft:#FFF5D6; --sun-ink:#7A5400;
   --good:#0F9A63; --good-soft:#DEF5EA; --bad:#D93F45; --bad-soft:#FDEBEC;
   --roo:#00B8A9; --je:#FF8000; --ue:#06C167;
   --shadow:0 1px 2px rgba(23,21,58,.05),0 10px 30px rgba(23,21,58,.07);
-  --shadow-lg:0 2px 6px rgba(23,21,58,.06),0 30px 60px rgba(75,60,250,.18);
+  --shadow-lg:0 2px 6px rgba(23,21,58,.06),0 30px 60px rgba(232,51,109,.18);
   --f:"Plus Jakarta Sans","Segoe UI",system-ui,-apple-system,sans-serif;
   --mono:"JetBrains Mono",Consolas,ui-monospace,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E0D1F; --surface:#17162E; --surface-2:#201F3D; --ink:#F1F0FF; --muted:#A3A2C7; --line:#2B2A4A;
-  --brand:#7C70FF; --brand-hover:#9289FF; --brand-ink:#0E0D1F; --brand-soft:#262357; --brand-line:#3F3A85;
+  --bg:#160D17; --surface:#21142A; --surface-2:#2D1C37; --ink:#FFF0F5; --muted:#C7A9BC; --line:#3A2643;
+  --brand:#FF5C8F; --brand-hover:#FF7FA6; --brand-ink:#160D17; --brand-soft:#4A1E33; --brand-line:#7A2E4F;
   --sun:#FFD45E; --sun-soft:#3A3115; --sun-ink:#FFD45E;
   --good:#3DD68C; --good-soft:#123527; --bad:#FF6B6E; --bad-soft:#3A1A22;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3);
-  --shadow-lg:0 2px 6px rgba(0,0,0,.3),0 30px 60px rgba(124,112,255,.2);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.3),0 30px 60px rgba(255,92,143,.2);
   color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E0D1F; --surface:#17162E; --surface-2:#201F3D; --ink:#F1F0FF; --muted:#A3A2C7; --line:#2B2A4A;
-  --brand:#7C70FF; --brand-hover:#9289FF; --brand-ink:#0E0D1F; --brand-soft:#262357; --brand-line:#3F3A85;
+  --bg:#160D17; --surface:#21142A; --surface-2:#2D1C37; --ink:#FFF0F5; --muted:#C7A9BC; --line:#3A2643;
+  --brand:#FF5C8F; --brand-hover:#FF7FA6; --brand-ink:#160D17; --brand-soft:#4A1E33; --brand-line:#7A2E4F;
   --sun:#FFD45E; --sun-soft:#3A3115; --sun-ink:#FFD45E;
   --good:#3DD68C; --good-soft:#123527; --bad:#FF6B6E; --bad-soft:#3A1A22;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3);
-  --shadow-lg:0 2px 6px rgba(0,0,0,.3),0 30px 60px rgba(124,112,255,.2);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.3),0 30px 60px rgba(255,92,143,.2);
   color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -58,7 +58,7 @@ a{color:inherit}
 .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid transparent}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand img{width:36px;height:36px;border-radius:10px;box-shadow:0 6px 16px rgba(75,60,250,.3)}
+.brand img{width:36px;height:36px;border-radius:10px;box-shadow:0 6px 16px rgba(232,51,109,.3)}
 .brand b{font-size:20px;font-weight:800;letter-spacing:-.03em}
 .nav-links{display:flex;align-items:center;gap:22px;font-size:14.5px;font-weight:600}
 .nav-links a{text-decoration:none;color:var(--muted)}
@@ -68,8 +68,8 @@ a{color:inherit}
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:16px;padding:14px 22px;border-radius:14px;text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:transform .15s,box-shadow .15s,background .15s}
 .btn:hover{transform:translateY(-1px)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);box-shadow:0 10px 24px rgba(75,60,250,.3)}
-.btn.primary:hover{background:var(--brand-hover);box-shadow:0 14px 30px rgba(75,60,250,.36)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);box-shadow:0 10px 24px rgba(232,51,109,.3)}
+.btn.primary:hover{background:var(--brand-hover);box-shadow:0 14px 30px rgba(232,51,109,.36)}
 .btn.sm{padding:9px 15px;font-size:14px;border-radius:11px}
 .btn svg{width:18px;height:18px;flex:none}
 
@@ -102,7 +102,7 @@ a{color:inherit}
 .ticket.miss:nth-child(2){transform:translateX(10px) rotate(1.5deg)}
 .ticket.win{border-color:var(--brand);box-shadow:var(--shadow-lg);transform:translateX(40px);margin-top:6px}
 .ticket.win .t-side{color:var(--good);font-size:24px}
-.ticket.win .badge{position:absolute;top:-14px;left:18px;background:var(--brand);color:var(--brand-ink);font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;box-shadow:0 6px 14px rgba(75,60,250,.3)}
+.ticket.win .badge{position:absolute;top:-14px;left:18px;background:var(--brand);color:var(--brand-ink);font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;box-shadow:0 6px 14px rgba(232,51,109,.3)}
 @media (prefers-reduced-motion:no-preference){
   .ticket{animation:glide .7s cubic-bezier(.2,.8,.2,1) both}
   .ticket:nth-child(2){animation-delay:.08s}.ticket:nth-child(3){animation-delay:.16s}.ticket:nth-child(4){animation-delay:.3s}
@@ -141,14 +141,14 @@ section{padding-block:64px}
 .faq details[open] summary::after{content:"–"}
 .faq details p{color:var(--muted);padding-bottom:18px;font-size:15.5px}
 
-.final{background:linear-gradient(120deg,#4B3CFA 0%,#6A3CF5 100%);color:#fff;border-radius:30px;padding:52px 32px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.final{background:linear-gradient(120deg,#E8336D 0%,#FF7A45 100%);color:#fff;border-radius:30px;padding:52px 32px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
 .final::before{content:"";position:absolute;right:-60px;top:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,200,61,.25)}
 .final::after{content:"";position:absolute;left:-40px;bottom:-90px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
 .final > *{position:relative;z-index:1}
 .final h2{font-size:clamp(30px,4.6vw,46px);font-weight:800}
 .final p{opacity:.88;margin-top:10px;font-size:17px}
 .final .cta{justify-content:center}
-.final .btn.light{background:#fff;color:#2a1fc4;border-color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.final .btn.light{background:#fff;color:#B81D52;border-color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.18)}
 .final .btn.outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
 
 footer{padding-block:34px 44px;color:var(--muted);font-size:14px}
@@ -159,11 +159,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="./"><img src="logo.svg" alt="" width="36" height="36"><b>5kateit</b></a>
+    <a class="brand" href="./"><img src="logo.svg" alt="" width="36" height="36"><b>Snackhack</b></a>
     <nav class="nav-links">
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#faq">FAQ</a>
-      <a class="btn primary sm" href="https://github.com/__REPO__/releases/latest/download/5kateit-Setup.exe">Download</a>
+      <a class="btn primary sm" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">Download</a>
     </nav>
   </div>
 </header>
@@ -176,10 +176,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         <span class="pill"><i class="dot" style="background:var(--je)"></i>Just Eat</span>
         <span class="pill"><i class="dot" style="background:var(--ue)"></i>Uber Eats</span>
       </div>
-      <h1>Glide past <span class="hl">full price.</span></h1>
-      <p class="lede">5kateit finds promo codes for your takeaway, tries every one in your basket, and keeps the one that saves you the most. You just hit order.</p>
+      <h1>Hack your <span class="hl">takeaway bill.</span></h1>
+      <p class="lede">Snackhack finds promo codes for your takeaway, tries every one in your basket, and keeps the one that saves you the most. You just hit order.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/__REPO__/releases/latest/download/5kateit-Setup.exe">
+        <a class="btn primary" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
           Download for Windows
         </a>
@@ -201,14 +201,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       <span class="eyebrow">How it works</span>
       <h2 class="sec-title">Three taps. It does the typing.</h2>
       <div class="steps">
-        <div class="step"><span class="step-n">1</span><h3>Open your app</h3><p>5kateit opens Deliveroo, Just Eat or Uber Eats in your own Edge or Chrome. Log in once, fill your basket, head to checkout.</p></div>
+        <div class="step"><span class="step-n">1</span><h3>Open your app</h3><p>Snackhack opens Deliveroo, Just Eat or Uber Eats in your own Edge or Chrome. Log in once, fill your basket, head to checkout.</p></div>
         <div class="step"><span class="step-n">2</span><h3>Find codes</h3><p>It searches HotUKDeals, Latest Deals and Reddit and ranks what it finds. Add a restaurant name for more specific deals.</p></div>
-        <div class="step"><span class="step-n">3</span><h3>Try them all</h3><p>Each code goes into the promo box. 5kateit reads the result, checks the new total, and leaves the best one applied.</p></div>
+        <div class="step"><span class="step-n">3</span><h3>Try them all</h3><p>Each code goes into the promo box. Snackhack reads the result, checks the new total, and leaves the best one applied.</p></div>
       </div>
       <div class="shot">
         <picture>
           <source srcset="screenshot-dark.webp" media="(prefers-color-scheme: dark)">
-          <img src="screenshot-light.webp" alt="The 5kateit app showing a £6 best code, a guided three-step panel and coupon cards" width="1770" height="1200" loading="lazy">
+          <img src="screenshot-light.webp" alt="The Snackhack app showing a £6 best code, a guided three-step panel and coupon cards" width="1770" height="1200" loading="lazy">
         </picture>
       </div>
     </div>
@@ -218,7 +218,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="wrap">
       <span class="eyebrow">Memberships</span>
       <h2 class="sec-title">Got Plus, Just Eat+ or Uber One? Say so.</h2>
-      <p class="sec-lede">Flip the switch in the app and 5kateit hunts for member-only deals too and tries them first. Not a member? It skips those codes so they don't waste your tries. Same for new-customer codes.</p>
+      <p class="sec-lede">Flip the switch in the app and Snackhack hunts for member-only deals too and tries them first. Not a member? It skips those codes so they don't waste your tries. Same for new-customer codes.</p>
       <div class="apps">
         <div class="app"><div class="app-head"><i class="dot" style="background:var(--roo)"></i>Deliveroo</div><span class="chip plus">Deliveroo Plus</span><p>Member deals like Plus-only BOGOFs and money off get searched for and tried first.</p></div>
         <div class="app"><div class="app-head"><i class="dot" style="background:var(--je)"></i>Just Eat</div><span class="chip plus">Just Eat+</span><p>Just Eat's membership. Member perks and codes get picked out of the search results.</p></div>
@@ -234,7 +234,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       <div class="faq">
         <details><summary>Windows says "Windows protected your PC"</summary><p>That's SmartScreen. It shows for new apps that aren't code-signed yet. Click <b>More info</b>, then <b>Run anyway</b>. The full source is on GitHub if you'd like to check it first.</p></details>
         <details><summary>Could it get my account banned?</summary><p>It tries at most 15 codes per run, types at human speed and pauses between tries. Automated use is still against the apps' terms, so there's always some risk. Use it on your own account at your own risk.</p></details>
-        <details><summary>Why do so many codes fail?</summary><p>Most codes are one-offs, tied to certain accounts, or for new customers only. That's the point: 5kateit finds out in seconds instead of you trying them one by one.</p></details>
+        <details><summary>Why do so many codes fail?</summary><p>Most codes are one-offs, tied to certain accounts, or for new customers only. That's the point: Snackhack finds out in seconds instead of you trying them one by one.</p></details>
         <details><summary>It can't find the promo box</summary><p>Checkout pages change. The settings file shown in the app lets you point it at the right box, and updates fix the defaults. Send the Activity log in an issue on GitHub and it'll get sorted.</p></details>
         <details><summary>Does it see my card details?</summary><p>No. It only reads the page text to spot the result and the total, and it never presses pay. Your logins, codes and history stay on your PC.</p></details>
         <details><summary>Is there a Mac version?</summary><p>Not as a download yet. It's a Python app, so it runs on Mac or Linux from source with <code>python -m tcf</code>.</p></details>
@@ -248,8 +248,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         <h2>Next order's cheaper.</h2>
         <p>Free download. Takes a minute to set up.</p>
         <div class="cta">
-          <a class="btn light" href="https://github.com/__REPO__/releases/latest/download/5kateit-Setup.exe">Download for Windows</a>
-          <a class="btn outline" href="https://github.com/__REPO__/releases/latest/download/5kateit-portable.zip">Portable .zip</a>
+          <a class="btn light" href="https://github.com/__REPO__/releases/latest/download/Snackhack-Setup.exe">Download for Windows</a>
+          <a class="btn outline" href="https://github.com/__REPO__/releases/latest/download/Snackhack-portable.zip">Portable .zip</a>
         </div>
       </div>
     </div>
@@ -258,7 +258,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <footer>
   <div class="wrap">
-    <span>© 5kateit. Not affiliated with Deliveroo, Just Eat or Uber Eats.</span>
+    <span>© Snackhack. Not affiliated with Deliveroo, Just Eat or Uber Eats.</span>
     <a href="https://github.com/__REPO__">Source on GitHub</a>
   </div>
 </footer>

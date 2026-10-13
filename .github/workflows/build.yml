@@ -41,10 +41,10 @@ jobs:
           $v = if ($env:GITHUB_REF_TYPE -eq "tag") { $env:GITHUB_REF_NAME.TrimStart("v") } else { (Select-String -Path tcf/__init__.py -Pattern '"([^"]+)"').Matches[0].Groups[1].Value }
           "APP_VERSION=$v" >> $env:GITHUB_ENV
           "__version__ = `"$v`"" | Set-Content tcf/__init__.py
-      - run: pyinstaller --noconfirm 5kateit.spec
+      - run: pyinstaller --noconfirm snackhack.spec
       - name: Zip portable build
         shell: pwsh
-        run: Compress-Archive -Path dist/5kateit/* -DestinationPath 5kateit-portable.zip
+        run: Compress-Archive -Path dist/Snackhack/* -DestinationPath Snackhack-portable.zip
       - name: Build installer
         shell: pwsh
         run: |
@@ -53,10 +53,10 @@ jobs:
           & $iscc "/DAppVersion=$env:APP_VERSION" installer.iss
       - uses: actions/upload-artifact@v4
         with:
-          name: 5kateit-windows
+          name: Snackhack-windows
           path: |
-            installer-out/5kateit-Setup.exe
-            5kateit-portable.zip
+            installer-out/Snackhack-Setup.exe
+            Snackhack-portable.zip
       # A push to main publishes (or updates) the release for the version in tcf/__init__.py.
       # Bump that version to cut a new release.
       - name: Publish release
@@ -65,11 +65,11 @@ jobs:
         with:
           tag_name: v${{ env.APP_VERSION }}
           target_commitish: ${{ github.sha }}
-          name: 5kateit ${{ env.APP_VERSION }}
+          name: Snackhack ${{ env.APP_VERSION }}
           make_latest: true
           files: |
-            installer-out/5kateit-Setup.exe
-            5kateit-portable.zip
+            installer-out/Snackhack-Setup.exe
+            Snackhack-portable.zip
 
   site:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')

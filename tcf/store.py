@@ -7,7 +7,8 @@ import threading
 import time
 from pathlib import Path
 
-APP_NAME = "5kateit"
+APP_NAME = "Snackhack"
+OLD_NAMES = ("5kateit",)  # earlier names; their data folder is moved over on first run
 
 
 def resource_dir() -> Path:
@@ -21,11 +22,27 @@ def data_dir() -> Path:
     if override:
         d = Path(override)
     elif os.name == "nt":
-        d = Path(os.environ.get("APPDATA", Path.home())) / APP_NAME
+        base = Path(os.environ.get("APPDATA", Path.home()))
+        d = base / APP_NAME
+        _migrate([base / n for n in OLD_NAMES], d)
     else:
         d = Path.home() / f".{APP_NAME.lower()}"
+        _migrate([Path.home() / f".{n.lower()}" for n in OLD_NAMES], d)
     d.mkdir(parents=True, exist_ok=True)
     return d
+
+
+def _migrate(old_dirs, new_dir):
+    """Keep saved codes, settings and logins when the app is renamed."""
+    if new_dir.exists():
+        return
+    for old in old_dirs:
+        if old.is_dir():
+            try:
+                old.rename(new_dir)
+            except OSError:
+                pass  # e.g. a file still in use; the app starts fresh instead
+            return
 
 
 def config_path() -> Path:

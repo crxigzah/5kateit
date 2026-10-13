@@ -5,30 +5,39 @@
 
 [Setup]
 AppId={{3F1C9A52-8E47-4D2B-A6B1-5C0E7D9F2A84}
-AppName=5kateit
+AppName=Snackhack
 AppVersion={#AppVersion}
-AppPublisher=5kateit
-DefaultDirName={localappdata}\Programs\5kateit
-DefaultGroupName=5kateit
+AppPublisher=Snackhack
+DefaultDirName={localappdata}\Programs\Snackhack
+DefaultGroupName=Snackhack
 PrivilegesRequired=lowest
 OutputDir=installer-out
-OutputBaseFilename=5kateit-Setup
+OutputBaseFilename=Snackhack-Setup
 SetupIconFile=tcf\static\icon.ico
-UninstallDisplayIcon={app}\5kateit.exe
+UninstallDisplayIcon={app}\Snackhack.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
+; Same AppId as 5kateit, so this upgrades it in place under the new name.
+UsePreviousAppDir=no
+CloseApplications=yes
+
+[InstallDelete]
+; Leftovers from when the app was called 5kateit
+Type: filesandordirs; Name: "{localappdata}\Programs\5kateit"
+Type: files; Name: "{autoprograms}\5kateit.lnk"
+Type: files; Name: "{autodesktop}\5kateit.lnk"
 
 [Files]
-Source: "dist\5kateit\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
+Source: "dist\Snackhack\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
-Name: "{autoprograms}\5kateit"; Filename: "{app}\5kateit.exe"
-Name: "{autodesktop}\5kateit"; Filename: "{app}\5kateit.exe"; Tasks: desktopicon
+Name: "{autoprograms}\Snackhack"; Filename: "{app}\Snackhack.exe"
+Name: "{autodesktop}\Snackhack"; Filename: "{app}\Snackhack.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
 
 [Run]
-Filename: "{app}\5kateit.exe"; Description: "Open 5kateit"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Snackhack.exe"; Description: "Open Snackhack"; Flags: nowait postinstall skipifsilent

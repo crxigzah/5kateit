@@ -15,7 +15,7 @@ from werkzeug.serving import make_server
 from .server import create_app
 from .store import data_dir
 
-TITLE = "5kateit"
+TITLE = "Snackhack"
 # Flags for the UI window's own profile. Without these, Edge signs the new profile into the
 # Windows account and syncs bookmarks and extensions (e.g. coupon/cashback add-ons) into it,
 # and the first-run sync makes Edge relaunch itself.

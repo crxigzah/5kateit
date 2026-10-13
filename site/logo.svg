@@ -1,16 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="5kateit">
-  <rect width="64" height="64" rx="16" fill="#4B3CFA"/>
-  <!-- speed lines -->
-  <rect x="8" y="23" width="9" height="3.6" rx="1.8" fill="#FFC83D"/>
-  <rect x="4" y="30.2" width="13" height="3.6" rx="1.8" fill="#FFC83D"/>
-  <rect x="10" y="37.4" width="7" height="3.6" rx="1.8" fill="#FFC83D"/>
-  <!-- coupon ticket, tilted like it's gliding -->
-  <g transform="rotate(-14 38 32)">
-    <path d="M22 18h32a4 4 0 0 1 4 4v6a4 4 0 0 0 0 8v6a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4v-6a4 4 0 0 0 0-8v-6a4 4 0 0 1 4-4z" fill="#FFFFFF"/>
-    <path d="M45 21v22" stroke="#4B3CFA" stroke-width="2" stroke-dasharray="3 3" opacity=".45"/>
-    <circle cx="27.5" cy="27" r="3.2" fill="#4B3CFA"/>
-    <circle cx="36.5" cy="37" r="3.2" fill="#4B3CFA"/>
-    <path d="M37.5 25.5 26.5 38.5" stroke="#4B3CFA" stroke-width="3.2" stroke-linecap="round"/>
-    <circle cx="51.5" cy="32" r="2.6" fill="#FFC83D"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Snackhack">
+  <rect width="64" height="64" rx="16" fill="#E8336D"/>
+  <!-- coupon -->
+  <g transform="rotate(-12 32 34)">
+    <path d="M14 22h36a4 4 0 0 1 4 4v5a4 4 0 0 0 0 8v5a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4v-5a4 4 0 0 0 0-8v-5a4 4 0 0 1 4-4z" fill="#FFFFFF"/>
+    <circle cx="17.5" cy="29.5" r="3" fill="#E8336D"/>
+    <circle cx="27" cy="40" r="3" fill="#E8336D"/>
+    <path d="M28 28 16.5 41.5" stroke="#E8336D" stroke-width="3" stroke-linecap="round"/>
+    <path d="M38.5 25v20" stroke="#E8336D" stroke-width="2" stroke-dasharray="2.6 2.6" opacity=".45"/>
+  </g>
+  <!-- fork crossing it -->
+  <g transform="translate(9 1) rotate(30 32 32) scale(.9) translate(3.5 3.5)" stroke="#E8336D" stroke-width="2.4" paint-order="stroke" stroke-linejoin="round">
+    <rect x="29.6" y="30" width="4.8" height="29" rx="2.4" fill="#FFC83D"/>
+    <rect x="25" y="19.5" width="14" height="10" rx="5" fill="#FFC83D"/>
+    <rect x="25" y="4" width="3.4" height="19" rx="1.7" fill="#FFC83D"/>
+    <rect x="30.3" y="4" width="3.4" height="19" rx="1.7" fill="#FFC83D"/>
+    <rect x="35.6" y="4" width="3.4" height="19" rx="1.7" fill="#FFC83D"/>
   </g>
 </svg>
