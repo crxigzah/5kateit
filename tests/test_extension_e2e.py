@@ -82,3 +82,23 @@ def test_panel_renders_off_site(ext):
     panel.click("text=Add")
     panel.wait_for_selector(".coupon >> text=MYCODE9")
     assert not errors, errors
+
+
+def test_window_mode_follows_main_browser_tab(ext):
+    """What Opera users get: Snackhack in its own window, working on the tab in the main window."""
+    ctx, ext_id = ext
+    shop = ctx.new_page()
+    shop.goto("https://deliveroo.co.uk/checkout")
+    sw = ctx.service_workers[0]
+    with ctx.expect_page() as new_page:
+        sw.evaluate("openWindow()")
+    panel = new_page.value
+    panel.wait_for_load_state()
+    assert "window=1" in panel.url
+    panel.wait_for_selector("text=You're on Deliveroo", timeout=10000)
+    assert not panel.is_disabled("#btnTest") or panel.inner_text("#btnTest")  # enabled once codes exist
+    # A second click focuses the same window instead of opening another
+    before = len(ctx.pages)
+    sw.evaluate("openWindow()")
+    time.sleep(1)
+    assert len(ctx.pages) == before

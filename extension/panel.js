@@ -58,9 +58,23 @@ const onSiteTab = () => S.tab && S.tabSite === S.site;
 
 const PINNED_TAB = Number(new URLSearchParams(location.search).get("tab")) || null; // used by the automated tests
 
+const OWN_WINDOW = new URLSearchParams(location.search).has("window"); // opened as a window (Opera etc.)
+
+async function activeShopTab() {
+  if (PINNED_TAB) return chrome.tabs.get(PINNED_TAB).catch(() => null);
+  if (OWN_WINDOW) {
+    // Our own window isn't where the shopping happens: use the browser window the user was last in.
+    const w = await chrome.windows.getLastFocused({windowTypes: ["normal"]}).catch(() => null);
+    if (!w) return null;
+    const [tab] = await chrome.tabs.query({active: true, windowId: w.id});
+    return tab || null;
+  }
+  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+  return tab || null;
+}
+
 async function refreshTab() {
-  const [tab] = PINNED_TAB ? [await chrome.tabs.get(PINNED_TAB).catch(() => null)]
-                           : await chrome.tabs.query({active: true, currentWindow: true});
+  const tab = await activeShopTab();
   S.tab = tab || null;
   const detected = tab && tab.url ? C.siteForUrl(tab.url) : null; // url is only visible on sites we have access to
   if (detected && detected !== S.tabSite && !S.busy) { S.site = detected; chrome.storage.local.set({site: detected}); }
@@ -342,6 +356,7 @@ $("addForm").onsubmit = async e => {
   await saveCodes(); $("addCode").value = ""; toast(`Added ${code}`); renderAll();
 };
 chrome.tabs.onActivated.addListener(refreshTab);
+if (OWN_WINDOW) chrome.windows.onFocusChanged.addListener(() => { if (!S.busy) refreshTab(); });
 chrome.tabs.onUpdated.addListener((id, info) => { if (info.url || info.status === "complete") refreshTab(); });
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || S.busy) return;
