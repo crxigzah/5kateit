@@ -12,6 +12,8 @@
   "sites": {
     "deliveroo": {
       "name": "Deliveroo",
+      "member_name": "Deliveroo Plus",
+      "member_query": "Deliveroo Plus",
       "start_url": "https://deliveroo.co.uk/",
       "domain": "deliveroo.co.uk",
       "query": "Deliveroo",
@@ -21,6 +23,8 @@
     },
     "justeat": {
       "name": "Just Eat",
+      "member_name": "Just Eat+",
+      "member_query": "Just Eat Plus",
       "start_url": "https://www.just-eat.co.uk/",
       "domain": "just-eat.co.uk",
       "query": "Just Eat",
@@ -30,6 +34,8 @@
     },
     "ubereats": {
       "name": "Uber Eats",
+      "member_name": "Uber One",
+      "member_query": "Uber One",
       "start_url": "https://www.ubereats.com/gb",
       "domain": "ubereats.com",
       "query": "Uber Eats",

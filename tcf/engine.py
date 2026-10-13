@@ -20,8 +20,9 @@ class Cancelled(Exception):
 
 
 class Engine:
-    def __init__(self, wallet, emit):
+    def __init__(self, wallet, emit, settings=None):
         self.wallet = wallet
+        self.settings = settings
         self.emit = emit
         self.jobs = queue.Queue()
         self.busy = None          # name of the job running, or None
@@ -134,17 +135,24 @@ class Engine:
         page.bring_to_front()
         self.log(f"{s['name']} is open. Log in, fill your basket and go to checkout, then come back and test codes.")
 
+    def _account(self, site):
+        return self.settings.account(site) if self.settings else {"member": False, "new": False}
+
     def find_codes(self, site, extra_query=""):
         self.cfg = load_config()
         self._ensure_browser()
         s = self.cfg["sites"][site]
-        query = " ".join(x for x in [s["query"], extra_query.strip()] if x)
+        acct = self._account(site)
         name_re = re.compile(re.sub(r"\s+", r"\\s*", re.escape(s["query"]).replace(r"\ ", " ")), re.I)
+        queries = [(" ".join(x for x in [s["query"], extra_query.strip()] if x), "")]
+        if acct["member"] and s.get("member_query"):
+            # Extra pass for member-only deals, e.g. "Deliveroo Plus" / "Uber One" codes.
+            queries.append((" ".join(x for x in [s["member_query"], extra_query.strip()] if x), f" ({s['member_name']})"))
         results = []
-        for src in self.cfg["sources"]:
+        for (query, label), src in [(q, src) for q in queries for src in self.cfg["sources"]]:
             self._check()
             url = src["url"].replace("{q}", quote(query))
-            self.log(f"Searching {src['name']}…")
+            self.log(f"Searching {src['name']}{label}…")
             try:
                 text = self._fetch_reddit(url, name_re) if src["kind"] == "reddit_json" else self._fetch_page(url)
             except Cancelled:
@@ -160,9 +168,12 @@ class Engine:
             existing = self.wallet.find(site, c["code"])
             self.wallet.upsert(site, c["code"], sources=c["sources"],
                                context=c["context"], expired_hint=c["expired_hint"],
+                               member_only=c["member_only"], new_only=c["new_only"],
                                **({} if existing else {"status": "untested"}))
         self.emit("codes", self.wallet.all())
-        self.log(f"Found {len(ranked)} codes to try for {s['name']}." if ranked else
+        n_member = sum(c["member_only"] for c in ranked)
+        extra = f" ({n_member} for {s.get('member_name', 'members')})" if n_member else ""
+        self.log(f"Found {len(ranked)} codes to try for {s['name']}{extra}." if ranked else
                  f"No codes found for {s['name']} right now. You can add your own.")
 
     def _fetch_page(self, url):
@@ -196,8 +207,18 @@ class Engine:
             return
         page.bring_to_front()
         if not codes:
+            acct = self._account(site)
             pool = [c for c in self.wallet.all() if c["site"] == site and c["status"] in ("untested", "unknown")]
-            pool.sort(key=lambda c: (c.get("expired_hint", False), -len(c.get("sources", []))))
+            # Don't spend the per-run limit on codes this account can't use.
+            skip = [c for c in pool if (c.get("member_only") and not acct["member"])
+                    or (c.get("new_only") and not acct["new"])]
+            pool = [c for c in pool if c not in skip]
+            if skip:
+                self.log(f"Skipping {len(skip)} code{'s' if len(skip) != 1 else ''} for members or new customers only "
+                         "(change this under Your account).")
+            # Members: try member-only deals first, they tend to be the better ones.
+            pool.sort(key=lambda c: (c.get("expired_hint", False), not (acct["member"] and c.get("member_only")),
+                                     -len(c.get("sources", []))))
             codes = [c["code"] for c in pool]
         codes = codes[: int(t["max_codes_per_run"])]
         if not codes:

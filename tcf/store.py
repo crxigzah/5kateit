@@ -101,3 +101,31 @@ class Wallet:
             self.codes = [c for c in self.codes
                           if not (c["site"] == site and c["code"].upper() == code.upper())]
             self._save()
+
+
+class Settings:
+    """Per-app account details the user tells us: paid membership and new-customer status."""
+
+    def __init__(self):
+        self.path = data_dir() / "settings.json"
+        self.lock = threading.Lock()
+        try:
+            self.data = json.loads(self.path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self.data = {}
+
+    def account(self, site):
+        a = self.data.get("accounts", {}).get(site, {})
+        return {"member": bool(a.get("member")), "new": bool(a.get("new"))}
+
+    def all_accounts(self, sites):
+        return {k: self.account(k) for k in sites}
+
+    def set_account(self, site, **fields):
+        with self.lock:
+            a = self.data.setdefault("accounts", {}).setdefault(site, {})
+            a.update({k: bool(v) for k, v in fields.items() if k in ("member", "new")})
+            tmp = self.path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(self.data, indent=2), encoding="utf-8")
+            tmp.replace(self.path)
+        return self.account(site)

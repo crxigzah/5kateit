@@ -26,6 +26,10 @@ PATTERNS = [
     re.compile(_CODE + r"[\"'”’]?\s+(?i:at checkout|in the app|for £|gives|gets you)"),
 ]
 _NEAR_EXPIRED = re.compile(r"(?i)expired|no longer works|doesn'?t work|not working|dead")
+# Paid memberships: Deliveroo Plus, Just Eat+, Uber One.
+_NEAR_MEMBER = re.compile(r"(?i)deliveroo\s*plus|\bplus\s+(members?|subscribers?|customers?)|uber\s*one|just\s*eat\s*(\+|plus)"
+                          r"|members?[\s-]*(only|exclusive)|exclusive (to|for) members|for (all )?members|subscribers? only")
+_NEAR_NEW = re.compile(r"(?i)new (customers?|users?|accounts?|members only)|first[\s-]*(time )?order|1st order|first[\s-]*time (customers?|users?)")
 
 
 def looks_like_code(tok: str) -> bool:
@@ -52,10 +56,16 @@ def find_codes(text: str):
                 continue
             start, end = max(0, m.start() - 90), min(len(text), m.end() + 90)
             ctx = " ".join(text[start:end].split())
-            entry = found.setdefault(code, {"hits": 0, "context": ctx, "expired_hint": False})
+            entry = found.setdefault(code, {"hits": 0, "context": ctx, "expired_hint": False,
+                                            "member_only": False, "new_only": False})
             entry["hits"] += 1
-            if _NEAR_EXPIRED.search(text[start:end]):
+            near = text[start:end]
+            if _NEAR_EXPIRED.search(near):
                 entry["expired_hint"] = True
+            if _NEAR_MEMBER.search(near):
+                entry["member_only"] = True
+            if _NEAR_NEW.search(near):
+                entry["new_only"] = True
     return found
 
 
@@ -64,12 +74,13 @@ def merge_candidates(results):
     merged = {}
     for source, codes in results:
         for code, info in codes.items():
-            m = merged.setdefault(code, {"code": code, "sources": [], "hits": 0,
-                                         "context": info["context"], "expired_hint": False})
+            m = merged.setdefault(code, {"code": code, "sources": [], "hits": 0, "context": info["context"],
+                                         "expired_hint": False, "member_only": False, "new_only": False})
             if source not in m["sources"]:
                 m["sources"].append(source)
             m["hits"] += info["hits"]
-            m["expired_hint"] = m["expired_hint"] or info["expired_hint"]
+            for flag in ("expired_hint", "member_only", "new_only"):
+                m[flag] = m[flag] or info.get(flag, False)
     ranked = sorted(merged.values(),
                     key=lambda m: (m["expired_hint"], -len(m["sources"]), -m["hits"]))
     return ranked

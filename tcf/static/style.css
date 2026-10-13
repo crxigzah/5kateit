@@ -84,3 +84,15 @@ tr.testing td{background:var(--accent-soft)}
 .foot{font-size:12px}
 .foot code{font-family:var(--f-mono);overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.account{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:4px 0 0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.account legend{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:0 6px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
+.toggle input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:20px;background:var(--line);border:1px solid #2a2a45;position:relative;flex:none;cursor:pointer;transition:background .2s,border-color .2s;margin:0}
+.toggle input::before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;border-radius:50%;background:#8888aa;transition:transform .2s,background .2s}
+.toggle input:checked{background:rgba(0,201,167,.25);border-color:var(--accent)}
+.toggle input:checked::before{transform:translateX(14px);background:var(--accent)}
+.small{font-size:12px}
+.pill.member{background:rgba(124,58,237,.16);color:#b49bff;border-color:transparent}
+.pill.newcust{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}

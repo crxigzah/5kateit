@@ -5,8 +5,8 @@ Windows desktop app that finds promo codes for **Deliveroo**, **Just Eat** and *
 ## How it works
 
 1. **Open** – launches your installed Edge (or Chrome) through Playwright with a dedicated, saved profile. You log in and fill your basket yourself.
-2. **Find codes** – loads HotUKDeals, Latest Deals and Reddit search results, extracts code-like strings (`tcf/extract.py`) and ranks them by how many sources mention them.
-3. **Test** – on the checkout page it finds the promo box (opening "Add promo/voucher" if needed), types each code with human-like delays, reads the page for success/error text and the change in the total, removes working codes so the rest can be tried, then re-applies the best one.
+2. **Find codes** – loads HotUKDeals, Latest Deals and Reddit search results, extracts code-like strings (`tcf/extract.py`) and ranks them by how many sources mention them. Codes are tagged members-only (Deliveroo Plus, Just Eat+, Uber One) or new-customers-only from the surrounding text. With the membership toggle on, a second search runs for member deals.
+3. **Test** – on the checkout page it finds the promo box (opening "Add promo/voucher" if needed), types each code with human-like delays, reads the page for success/error text and the change in the total, removes working codes so the rest can be tried, then re-applies the best one. Codes the account can't use (members-only without a membership, new-customer codes on an existing account) are skipped; members' deals are tried first.
 
 Limits per run (max codes, delays, wait time) live in `sites.json`. The app never clicks pay.
 

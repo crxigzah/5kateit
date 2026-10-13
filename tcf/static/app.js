@@ -3,7 +3,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const STATUS = {works:"Works", rejected:"Rejected", unknown:"Unclear", error:"Couldn't test", untested:"Not tested"};
 const ORDER = {works:0, untested:1, unknown:2, error:3, rejected:4};
 
-let S = {sites:{}, codes:[], status:{busy:null, browser:false}, site:null, progress:null};
+let S = {sites:{}, codes:[], accounts:{}, status:{busy:null, browser:false}, site:null, progress:null};
 try { S.site = localStorage.getItem("tcf.site"); } catch (e) {}
 
 async function api(path, body, method = "POST") {
@@ -23,6 +23,18 @@ function renderTabs() {
   document.querySelectorAll(".site-name").forEach(n => n.textContent = S.sites[S.site]?.name || "");
 }
 
+function tagsFor(c) {
+  const t = [];
+  if (c.member_only) t.push(`<span class="pill member">${esc(S.sites[c.site]?.member_name || "Members")} only</span>`);
+  if (c.new_only) t.push(`<span class="pill newcust">New customers</span>`);
+  return t.length ? `<div class="tags">${t.join("")}</div>` : "";
+}
+
+function usable(c) {
+  const a = S.accounts[c.site] || {};
+  return !((c.member_only && !a.member) || (c.new_only && !a.new));
+}
+
 function renderCodes() {
   const list = S.codes.filter(c => c.site === S.site)
     .sort((a, b) => (ORDER[a.status] - ORDER[b.status]) || ((b.saving || 0) - (a.saving || 0)) || ((b.sources?.length || 0) - (a.sources?.length || 0)));
@@ -31,7 +43,7 @@ function renderCodes() {
   const testing = S.progress && S.progress.site === S.site ? S.progress.code : null;
   $("rows").innerHTML = list.map(c => `
     <tr class="${c.code === testing ? "testing" : ""}">
-      <td><span class="code">${esc(c.code)}</span>${c.expired_hint ? `<div class="msg">Posted as possibly expired</div>` : ""}</td>
+      <td><span class="code">${esc(c.code)}</span>${tagsFor(c)}${c.expired_hint ? `<div class="msg">Posted as possibly expired</div>` : ""}</td>
       <td><span class="pill ${c.code === testing ? "busy" : c.status}">${c.code === testing ? "Testing…" : STATUS[c.status] || c.status}</span>
           ${c.message ? `<div class="msg">${esc(c.message)}</div>` : ""}</td>
       <td>${c.saving ? `£${Number(c.saving).toFixed(2)}` : "–"}</td>
@@ -51,7 +63,7 @@ function renderCodes() {
   const n = k => list.filter(c => c.status === k).length;
   $("summary").innerHTML = [["works", "working"], ["untested", "to test"], ["rejected", "rejected"]]
     .filter(([k]) => n(k)).map(([k, l]) => `<span class="pill ${k}">${n(k)} ${l}</span>`).join("");
-  const toTest = n("untested") + n("unknown");
+  const toTest = list.filter(c => (c.status === "untested" || c.status === "unknown") && usable(c)).length;
   $("btnTest").textContent = toTest ? `Test ${Math.min(toTest, S.maxCodes || 15)} code${toTest === 1 ? "" : "s"}` : "Test codes";
 }
 
@@ -77,7 +89,26 @@ function addLog(e) {
   while ($("log").children.length > 300) $("log").firstChild.remove();
 }
 
-function renderAll() { renderTabs(); renderCodes(); renderStatus(); }
+function renderAccount() {
+  const site = S.sites[S.site] || {}, acct = S.accounts[S.site] || {};
+  $("memberName").textContent = site.member_name || "membership";
+  $("accMember").checked = !!acct.member;
+  $("accNew").checked = !!acct.new;
+  const bits = [];
+  bits.push(acct.member ? `Also searching for ${site.member_name} deals, and trying them first.`
+                        : `Codes for ${site.member_name} members get skipped.`);
+  if (!acct.new) bits.push("New-customer codes get skipped.");
+  $("accHint").textContent = bits.join(" ");
+}
+
+async function saveAccount(field, value) {
+  const j = await api("/api/account", {site: S.site, [field]: value});
+  if (j.ok) { S.accounts[S.site] = j.account; renderAccount(); renderCodes(); }
+}
+$("accMember").onchange = e => saveAccount("member", e.target.checked);
+$("accNew").onchange = e => saveAccount("new", e.target.checked);
+
+function renderAll() { renderTabs(); renderAccount(); renderCodes(); renderStatus(); }
 
 $("btnOpen").onclick = () => api("/api/open", {site: S.site});
 $("btnFind").onclick = () => api("/api/find", {site: S.site, query: $("query").value});
@@ -93,7 +124,7 @@ $("addForm").onsubmit = async e => {
 
 (async function boot() {
   const st = await (await fetch("/api/state")).json();
-  S.sites = st.sites; S.codes = st.codes; S.status = st.status; S.maxCodes = st.max_codes;
+  S.sites = st.sites; S.codes = st.codes; S.accounts = st.accounts || {}; S.status = st.status; S.maxCodes = st.max_codes;
   if (!S.sites[S.site]) S.site = Object.keys(S.sites)[0];
   $("cfgPath").textContent = st.config_path;
   st.log.forEach(addLog);

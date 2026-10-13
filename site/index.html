@@ -150,7 +150,7 @@ footer a { color:var(--teal); text-decoration:none; }
   <h2>Three steps, then it does the typing.</h2>
   <div class="steps">
     <div class="step"><div class="step-num">1</div><h3>Open the app you're ordering from</h3><p>5kateit opens Deliveroo, Just Eat or Uber Eats in your own Edge or Chrome. Log in once and it stays logged in.</p></div>
-    <div class="step"><div class="step-num">2</div><h3>Find codes</h3><p>It searches HotUKDeals, Latest Deals and Reddit, picks out anything that looks like a code and ranks them by how many places mention them.</p></div>
+    <div class="step"><div class="step-num">2</div><h3>Find codes</h3><p>It searches HotUKDeals, Latest Deals and Reddit, picks out anything that looks like a code and ranks them by how many places mention them. Tell it if you're a Deliveroo Plus, Just Eat+ or Uber One member and it hunts for member-only deals too.</p></div>
     <div class="step"><div class="step-num">3</div><h3>Test at checkout</h3><p>With your basket at checkout, it tries each code in the promo box, reads what the site says, and re-applies the best one at the end.</p></div>
   </div>
   <div class="shot"><img src="screenshot.png" alt="5kateit window showing the three steps and a list of codes" width="1180" height="882"></div>
@@ -164,6 +164,7 @@ footer a { color:var(--teal); text-decoration:none; }
     <div class="faq-item"><h3>Will it get my account banned?</h3><p>It tests at most 15 codes per run, types at human speed and waits a few seconds between tries. But automated use is against all three apps' terms, so there's always some risk. Use it on your own account at your own risk.</p></div>
     <div class="faq-item"><h3>Why do so many codes fail?</h3><p>Most codes are one-off, tied to certain accounts, or new-customer only. That's the point: 5kateit finds out in seconds instead of you trying them one by one.</p></div>
     <div class="faq-item"><h3>It can't find the promo box</h3><p>Sites change their checkout pages. The settings file shown at the bottom of the app lets you point it at the exact box and button, and updates will fix the defaults.</p></div>
+    <div class="faq-item"><h3>I pay for Deliveroo Plus, Just Eat+ or Uber One</h3><p>Switch on the membership toggle for that app. 5kateit then also searches for member deals and tries those first. If you're not a member, member-only codes are skipped so they don't waste your tries.</p></div>
     <div class="faq-item"><h3>Does it see my card details?</h3><p>No. It only reads the page text to spot the result and the total, and never clicks pay. Your logins, codes and history stay on your PC.</p></div>
     <div class="faq-item"><h3>Does it work on Mac?</h3><p>Not as a download yet. It's a Python app, so it runs on Mac or Linux from source with <code>python -m tcf</code>.</p></div>
   </div>

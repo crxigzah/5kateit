@@ -47,3 +47,20 @@ def test_classify_works_from_total_drop():
 
 def test_classify_unknown():
     assert extract.classify("Total\n£10.00", "Total\n£10.00", CFG)[0] == "unknown"
+
+
+def test_flags_member_and_new_customer_codes():
+    found = extract.find_codes(
+        "Deliveroo Plus members: use code PLUSFEAST for £5 off.\n\n\n\n"
+        + "x " * 80
+        + "\nNew customers get £10 off with code HELLO10 on your first order.\n"
+        + "y " * 80
+        + "\nAnyone can use code EVERYONE7 this week.")
+    assert found["PLUSFEAST"]["member_only"] and not found["PLUSFEAST"]["new_only"]
+    assert found["HELLO10"]["new_only"] and not found["HELLO10"]["member_only"]
+    assert not found["EVERYONE7"]["member_only"] and not found["EVERYONE7"]["new_only"]
+
+
+def test_uber_one_and_just_eat_plus_count_as_member():
+    assert extract.find_codes("Uber One members get code ONEEATS15")["ONEEATS15"]["member_only"]
+    assert extract.find_codes("Just Eat+ exclusive: code JEPLUS4")["JEPLUS4"]["member_only"]

@@ -7,7 +7,7 @@ import time
 from flask import Flask, Response, jsonify, request, send_from_directory
 
 from .engine import Engine
-from .store import Wallet, config_path, load_config, resource_dir
+from .store import Settings, Wallet, config_path, load_config, resource_dir
 
 
 def create_app():
@@ -25,7 +25,8 @@ def create_app():
                 q.put(msg)
 
     wallet = Wallet()
-    engine = Engine(wallet, emit)
+    settings = Settings()
+    engine = Engine(wallet, emit, settings)
     app.engine = engine
     # The app window keeps /api/events open; __main__ exits once it has been gone a while.
     app.ui_state = {"clients": 0, "ever": False, "last_change": time.time()}
@@ -52,7 +53,8 @@ def create_app():
     def state():
         cfg = load_config()
         return jsonify({
-            "sites": {k: {"name": v["name"]} for k, v in cfg["sites"].items()},
+            "sites": {k: {"name": v["name"], "member_name": v.get("member_name", "")} for k, v in cfg["sites"].items()},
+            "accounts": settings.all_accounts(cfg["sites"]),
             "codes": wallet.all(),
             "status": engine.status(),
             "log": [m["data"] for m in history],
@@ -93,6 +95,14 @@ def create_app():
         if not site_ok(site) or not code:
             return jsonify({"ok": False, "error": "Pick an app and a code"}), 400
         return start("Applying code", engine.apply_code, site, code)
+
+    @app.post("/api/account")
+    def account():
+        site = request.json.get("site")
+        if not site_ok(site):
+            return jsonify({"ok": False, "error": "Unknown app"}), 400
+        acct = settings.set_account(site, **{k: request.json[k] for k in ("member", "new") if k in request.json})
+        return jsonify({"ok": True, "account": acct})
 
     @app.post("/api/stop")
     def stop():

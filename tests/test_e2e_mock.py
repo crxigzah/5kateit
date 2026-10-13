@@ -69,3 +69,31 @@ def test_tests_codes_and_leaves_best_applied(env):
     engine.submit("close", lambda: engine.ctx.close())
     while engine.busy:
         time.sleep(0.1)
+
+
+def test_member_and_new_customer_codes_follow_account_settings(env):
+    from tcf.engine import Engine
+    from tcf.store import Settings, Wallet
+
+    logs, order = [], []
+    wallet, settings = Wallet(), Settings()
+    engine = Engine(wallet, lambda k, d: (logs.append(d["msg"]) if k == "log" else
+                                          order.append(d["code"]) if k == "progress" and d else None), settings)
+    wallet.upsert("mock", "BADCODE1", sources=["a", "b"])
+    wallet.upsert("mock", "SAVE5", sources=["a"], member_only=True)
+    wallet.upsert("mock", "TENOFF", sources=["a"], new_only=True)
+
+    run(engine, engine.open_site, "mock")
+    run(engine, engine.test_codes, "mock")
+    assert order == ["BADCODE1"]  # member and new-customer codes skipped
+    assert any("Skipping 2 codes" in m for m in logs)
+
+    settings.set_account("mock", member=True)
+    wallet.upsert("mock", "BADCODE2", sources=["a", "b", "c"])
+    order.clear()
+    run(engine, engine.test_codes, "mock")
+    assert order == ["SAVE5", "BADCODE2"]  # member deal tried first, new-customer code still skipped
+    assert {c["code"]: c["status"] for c in wallet.all()}["SAVE5"] == "works"
+    engine.submit("close", lambda: engine.ctx.close())
+    while engine.busy:
+        time.sleep(0.1)
