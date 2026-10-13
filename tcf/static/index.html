@@ -5,91 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>5kateit</title>
 <link rel="stylesheet" href="/static/style.css">
-<link rel="icon" href="/static/logo.png">
+<link rel="icon" href="/static/logo.svg" type="image/svg+xml">
 </head>
 <body>
 <div class="app">
-  <header class="top">
+  <header class="topbar">
     <div class="brand">
-      <img class="logo" src="/static/logo.png" alt="">
-      <div><h1><span class="grad">5kateit</span></h1><p class="muted">Finds promo codes online and tries them in your basket.</p></div>
+      <img class="brand-mark" src="/static/logo.svg" alt="" width="40" height="40">
+      <div class="brand-text">
+        <span class="wordmark">5kateit</span>
+        <span class="tagline">Glide past full price</span>
+      </div>
     </div>
-    <nav class="tabs" id="tabs" aria-label="App"></nav>
+    <nav class="switcher" id="tabs" role="tablist" aria-label="Delivery app"></nav>
   </header>
 
-  <main class="grid">
-    <section class="panel steps">
-      <div class="step">
-        <div class="step-n">1</div>
-        <div class="step-body">
-          <h2>Open <span class="site-name"></span></h2>
-          <p class="muted">Log in, add your food and go to the checkout page. You only need to log in the first time.</p>
-          <button id="btnOpen" class="btn primary">Open <span class="site-name"></span></button>
-          <fieldset class="account">
-            <legend>Your account</legend>
-            <label class="toggle"><input type="checkbox" id="accMember"><span>I'm a <b id="memberName"></b> member</span></label>
-            <label class="toggle"><input type="checkbox" id="accNew"><span>I've never ordered on <span class="site-name"></span></span></label>
-            <p class="muted small" id="accHint"></p>
-          </fieldset>
-        </div>
+  <main class="layout">
+    <!-- Left: what to do next -->
+    <section class="card guide" aria-labelledby="guideTitle">
+      <div class="guide-head">
+        <span class="app-chip" id="appChip"></span>
+        <h1 id="guideTitle">Let's find you a code</h1>
       </div>
-      <div class="step">
-        <div class="step-n">2</div>
-        <div class="step-body">
-          <h2>Find codes</h2>
-          <p class="muted">Searches HotUKDeals, Latest Deals and Reddit. Add the restaurant for more specific codes.</p>
-          <label for="query">Restaurant (optional)</label>
-          <div class="row">
-            <input id="query" placeholder="e.g. Domino's, Nando's" maxlength="60">
-            <button id="btnFind" class="btn">Find codes</button>
+
+      <ol class="stepper">
+        <li class="step" id="step1">
+          <span class="step-dot"><span>1</span></span>
+          <div class="step-body">
+            <h2>Open <span class="site-name"></span></h2>
+            <p>Log in, add your food and go to checkout. You only log in once.</p>
+            <button id="btnOpen" class="btn"><span>Open <span class="site-name"></span></span></button>
           </div>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-n">3</div>
-        <div class="step-body">
-          <h2>Test them at checkout</h2>
-          <p class="muted">Types each code into the promo box, reads the result and leaves the best one applied. Hands off the browser while it runs.</p>
-          <div class="row">
-            <button id="btnTest" class="btn primary">Test codes</button>
-            <button id="btnStop" class="btn ghost" hidden>Stop</button>
+        </li>
+        <li class="step" id="step2">
+          <span class="step-dot"><span>2</span></span>
+          <div class="step-body">
+            <h2>Find codes</h2>
+            <p>We check HotUKDeals, Latest Deals and Reddit for you.</p>
+            <div class="field-row">
+              <input id="query" placeholder="Restaurant (optional)" maxlength="60" aria-label="Restaurant, optional">
+              <button id="btnFind" class="btn">Find codes</button>
+            </div>
           </div>
-          <div class="progress" id="progress" hidden><div class="bar" id="bar"></div><span id="progressText"></span></div>
-        </div>
+        </li>
+        <li class="step" id="step3">
+          <span class="step-dot"><span>3</span></span>
+          <div class="step-body">
+            <h2>Try them at checkout</h2>
+            <p>We type each one in and keep the best. Hands off the browser while it runs.</p>
+            <div class="field-row">
+              <button id="btnTest" class="btn">Try codes</button>
+              <button id="btnStop" class="btn ghost" hidden>Stop</button>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <div class="account" role="group" aria-labelledby="accTitle">
+        <h3 id="accTitle">About you on <span class="site-name"></span></h3>
+        <label class="switch"><input type="checkbox" id="accMember"><span class="track" aria-hidden="true"></span><span>I have <b id="memberName"></b></span></label>
+        <label class="switch"><input type="checkbox" id="accNew"><span class="track" aria-hidden="true"></span><span>I'm new to <span class="site-name"></span></span></label>
+        <p class="hint" id="accHint"></p>
       </div>
-      <div class="step">
-        <div class="step-n">+</div>
-        <div class="step-body">
-          <h2>Got a code already?</h2>
-          <form class="row" id="addForm">
-            <input id="addCode" placeholder="Paste a code" maxlength="24" autocomplete="off" aria-label="Code to add">
-            <button class="btn" type="submit">Add</button>
-          </form>
+
+      <form class="add" id="addForm">
+        <label for="addCode">Got a code already?</label>
+        <div class="field-row">
+          <input id="addCode" placeholder="Paste it here" maxlength="24" autocomplete="off">
+          <button class="btn soft" type="submit">Add</button>
         </div>
-      </div>
+      </form>
     </section>
 
-    <section class="panel codes">
-      <div class="panel-head">
+    <!-- Right: results -->
+    <section class="results" aria-label="Codes">
+      <div class="card hero" id="hero"></div>
+
+      <div class="list-head">
         <h2><span class="site-name"></span> codes</h2>
-        <div class="summary" id="summary"></div>
+        <div class="filters" id="filters" role="tablist" aria-label="Filter codes"></div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Code</th><th>Result</th><th>Saving</th><th>Found on</th><th></th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <div class="empty" id="empty" hidden>No codes yet for <span class="site-name"></span>. Press <b>Find codes</b> or add one you've got.</div>
-    </section>
+      <div class="coupons" id="coupons"></div>
+      <div class="empty" id="empty" hidden></div>
 
-    <section class="panel log-panel">
-      <div class="panel-head"><h2>Activity</h2><span class="pill" id="busy">Ready</span></div>
-      <ol class="log" id="log"></ol>
+      <details class="card activity" id="activity">
+        <summary><span class="pulse" id="busyDot"></span><span id="lastLog">Ready when you are</span><span class="act-label">Activity</span></summary>
+        <ol class="log" id="log"></ol>
+      </details>
     </section>
   </main>
-  <footer class="muted foot">Settings file: <code id="cfgPath"></code>. Edit it to add CSS selectors if a site's promo box isn't found. Codes and logins stay on this PC.</footer>
+
+  <footer class="foot">Settings file: <code id="cfgPath"></code>. Logins, codes and history stay on this PC.</footer>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="/static/app.js"></script>
 </body>
 </html>

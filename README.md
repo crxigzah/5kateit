@@ -1,5 +1,7 @@
 # 5kateit
 
+*Glide past full price.*
+
 Windows desktop app that finds promo codes for **Deliveroo**, **Just Eat** and **Uber Eats** on UK deal sites and tests them in the checkout's promo box, then leaves the best one applied.
 
 ## How it works
@@ -46,3 +48,7 @@ The download buttons on the site point to `releases/latest`, so each new release
 ## Caveats
 
 Automated use is against the delivery apps' terms. The app keeps runs small and slow, but use it on your own account at your own risk. The builds aren't code-signed, so Windows SmartScreen will warn on first run.
+
+## Credits
+
+Bundled fonts: Plus Jakarta Sans and JetBrains Mono, both under the SIL Open Font License.

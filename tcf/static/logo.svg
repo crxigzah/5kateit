@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="5kateit">
+  <rect width="64" height="64" rx="16" fill="#4B3CFA"/>
+  <!-- speed lines -->
+  <rect x="8" y="23" width="9" height="3.6" rx="1.8" fill="#FFC83D"/>
+  <rect x="4" y="30.2" width="13" height="3.6" rx="1.8" fill="#FFC83D"/>
+  <rect x="10" y="37.4" width="7" height="3.6" rx="1.8" fill="#FFC83D"/>
+  <!-- coupon ticket, tilted like it's gliding -->
+  <g transform="rotate(-14 38 32)">
+    <path d="M22 18h32a4 4 0 0 1 4 4v6a4 4 0 0 0 0 8v6a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4v-6a4 4 0 0 0 0-8v-6a4 4 0 0 1 4-4z" fill="#FFFFFF"/>
+    <path d="M45 21v22" stroke="#4B3CFA" stroke-width="2" stroke-dasharray="3 3" opacity=".45"/>
+    <circle cx="27.5" cy="27" r="3.2" fill="#4B3CFA"/>
+    <circle cx="36.5" cy="37" r="3.2" fill="#4B3CFA"/>
+    <path d="M37.5 25.5 26.5 38.5" stroke="#4B3CFA" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="51.5" cy="32" r="2.6" fill="#FFC83D"/>
+  </g>
+</svg>

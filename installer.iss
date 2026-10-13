@@ -7,7 +7,7 @@
 AppId={{3F1C9A52-8E47-4D2B-A6B1-5C0E7D9F2A84}
 AppName=5kateit
 AppVersion={#AppVersion}
-AppPublisher=5kable
+AppPublisher=5kateit
 DefaultDirName={localappdata}\Programs\5kateit
 DefaultGroupName=5kateit
 PrivilegesRequired=lowest
