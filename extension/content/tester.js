@@ -131,5 +131,14 @@
     return !pageText().toUpperCase().includes(code.toUpperCase());
   }
 
-  globalThis.SnackTester = {tryCode, removeCode, hasPromoBox: cfg => !!(findInput(cfg) || findOpener(cfg))};
+  // Where is the user? "box" = promo code box is showing, "opener" = checkout with an
+  // "Add promo code" link we can click, null = not at the promo step yet.
+  function detect(cfg) {
+    if (findInput(cfg)) return "box";
+    const atCheckout = /checkout|basket|cart|payment/i.test(location.pathname) ||
+      /\b(place (my )?order|go to checkout|checkout|go to payment|pay now|confirm order)\b/i.test(pageText().slice(0, 20000));
+    return atCheckout && findOpener(cfg) ? "opener" : null;
+  }
+
+  globalThis.SnackTester = {tryCode, removeCode, detect};
 })();

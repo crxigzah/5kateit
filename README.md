@@ -8,9 +8,10 @@ Windows desktop app that finds promo codes for **Deliveroo**, **Just Eat** and *
 
 `extension/` is a Manifest V3 extension for Chrome, Edge, Brave, Opera and Vivaldi. Click the toolbar icon to open the Snackhack side panel (a popup in browsers without side panels).
 
-- **Find codes** – the panel fetches HotUKDeals, Latest Deals and Reddit (extension host permissions, no cookies sent) and extracts codes with `lib/extract.js`.
-- **Try codes** – on a Deliveroo, Just Eat or Uber Eats tab, `content/tester.js` is injected with `chrome.scripting`. It finds the promo box, types each code, reads the result and total, and leaves the best one applied.
-- Codes, membership switches and the log live in `chrome.storage.local`. Nothing is sent anywhere else.
+- **Finding codes** – fetches 13 sources in parallel (HotUKDeals search, vouchers and merchant page, Latest Deals, Reddit site-wide and the app's subreddit, VoucherCodes, MyVoucherCodes, Groupon, CouponFollow, Wethrift, Discoup, Savoo, DealHack; list in `lib/config.js`). No cookies are sent. `lib/extract.js` reads codes from page text plus ones hidden in reveal buttons and page data.
+- **Unlocking** – `content/watch.js` runs on Deliveroo, Just Eat and Uber Eats and tells the panel when the promo box (or a checkout's "add promo code" link) is showing. Try codes stays greyed out until then.
+- **Try codes** – one tap: searches first if the last search is over 30 minutes old, then tries up to 20 codes (previous winners first; failures get retried after 14 days), leaves the best applied, and records each code's tries, wins and saving plus a history of runs for the savings totals.
+- Codes, membership switches, history and the log live in `chrome.storage.local`. Nothing is sent anywhere else.
 
 Try it locally: `chrome://extensions` → Developer mode → Load unpacked → pick `extension/`.
 

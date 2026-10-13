@@ -64,3 +64,27 @@ test("tags stay within their own post", () => {
   const found = X.findCodes("Deliveroo Plus members: use code PLUSONLY9\n\nAnyone: £5 off with code SAVE5NOW");
   assert.ok(found.PLUSONLY9.member_only); assert.ok(!found.SAVE5NOW.member_only);
 });
+
+test("hidden codes in reveal buttons and page data", () => {
+  const html = `<button data-clipboard-text="ROOHIDE7">Reveal code</button>
+    <div data-voucher-code='JE10HIDDEN'></div><script>{"code":"UBERJSON5","currency":{"code":"GBP"}}</script>`;
+  const found = X.findCodes(html);
+  for (const c of ["ROOHIDE7", "JE10HIDDEN", "UBERJSON5"]) assert.ok(found[c], c);
+  assert.ok(!found.GBP);
+});
+
+test("source list covers many sites and adds member searches", () => {
+  const plain = CONFIG.sourceUrls("ubereats", false), member = CONFIG.sourceUrls("ubereats", true);
+  assert.ok(plain.length >= 13, `only ${plain.length} sources`);
+  assert.ok(member.length > plain.length);
+  assert.ok(member.some(s => s.url.includes("Uber%20One")));
+  assert.ok(plain.every(s => !s.url.includes("{")));
+  // Sites without a page for an app are skipped rather than fetched with a blank name
+  assert.ok(!CONFIG.sourceUrls("deliveroo", false).some(s => s.url.includes("savoo")));
+});
+
+test("hidden codes come out on their own, without neighbouring wording", () => {
+  const html = `<h2>Deliveroo code BADCODE1 for 20% off</h2><h2>Deliveroo Plus members: use code TENOFF</h2>
+    <button data-clipboard-text="ROOHIDE7">Reveal</button>`;
+  assert.strictEqual(X.hiddenCodes(html), "code ROOHIDE7");
+});

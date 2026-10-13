@@ -17,8 +17,9 @@
     new RegExp(KEY + SEP + CODE + "(?![A-Za-z0-9])", "g"),
     new RegExp(`\\b(?:${ci("use")}|${ci("enter")}|${ci("apply")}|${ci("try")})\\s+(?:${ci("the")}\\s+)?(?:${KEY}\\s+)?["'“‘]?` + CODE + "(?![A-Za-z0-9])", "g"),
     new RegExp(CODE + `["'”’]?\\s+(?:${ci("at checkout")}|${ci("in the app")}|${ci("for")} £|${ci("gives")}|${ci("gets you")})`, "g"),
-    // Structured data some deal sites embed in the page
-    /"(?:voucherCode|voucher_code|couponCode|promoCode)"\s*:\s*"([A-Z0-9][A-Z0-9_-]{2,19}[A-Z0-9])"/g,
+    // Codes voucher sites hide behind "reveal" buttons but still ship in the page
+    /"(?:voucherCode|voucher_code|couponCode|coupon_code|promoCode|promo_code|discountCode|code)"\s*:\s*"([A-Z0-9][A-Z0-9_-]{2,19}[A-Z0-9])"/g,
+    /\bdata-(?:code|coupon|coupon-code|voucher|voucher-code|promo|promo-code|clipboard-text)\s*=\s*["']([A-Z0-9][A-Z0-9_-]{2,19}[A-Z0-9])["']/g,
   ];
   const NEAR_EXPIRED = /expired|no longer works|doesn'?t work|not working|dead/i;
   const NEAR_MEMBER = /deliveroo\s*plus|\bplus\s+(members?|subscribers?|customers?)|uber\s*one|just\s*eat\s*(\+|plus)|members?[\s-]*(only|exclusive)|exclusive (to|for) members|for (all )?members|subscribers? only/i;
@@ -95,7 +96,20 @@
     return ["unknown", added.length ? added[0].slice(0, 160) : "No visible response from the site", null];
   }
 
-  const api = {findCodes, mergeCandidates, classify, readTotal, newLines, looksLikeCode};
+  // Codes hidden in a page's markup (reveal buttons, page data). Returned as separate paragraphs so
+  // wording from neighbouring posts can't leak onto them.
+  const HIDDEN = [PATTERNS[3], PATTERNS[4]];
+  function hiddenCodes(html) {
+    const out = new Set();
+    for (const pat of HIDDEN) {
+      pat.lastIndex = 0;
+      let m;
+      while ((m = pat.exec(html))) if (looksLikeCode(m[1])) out.add(m[1]);
+    }
+    return [...out].map(c => `code ${c}`).join("\n\n");
+  }
+
+  const api = {findCodes, mergeCandidates, classify, readTotal, newLines, looksLikeCode, hiddenCodes};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SnackExtract = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

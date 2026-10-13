@@ -21,14 +21,13 @@
 
   <section class="card actions">
     <div class="field-row">
-      <input id="query" placeholder="Restaurant (optional)" maxlength="60" aria-label="Restaurant, optional">
-      <button id="btnFind" class="btn">Find codes</button>
-    </div>
-    <div class="field-row">
       <button id="btnTest" class="btn primary grow">Try codes</button>
       <button id="btnStop" class="btn ghost" hidden>Stop</button>
     </div>
+    <button id="btnFind" class="btn ghost-link">Find codes</button>
   </section>
+
+  <section class="stats" id="stats" aria-label="Your savings" hidden></section>
 
   <section class="account" role="group" aria-labelledby="accTitle">
     <h3 id="accTitle">About you on <span class="site-name"></span></h3>

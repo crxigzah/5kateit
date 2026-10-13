@@ -8,13 +8,16 @@ const STATUS = {works:"Works", rejected:"Didn't work", unknown:"Unclear", error:
 const ORDER = {works:0, untested:1, unknown:2, error:3, rejected:4};
 const FILTERS = [["all","All"],["works","Working"],["todo","To try"],["rejected","Didn't work"]];
 
-const S = {site: "deliveroo", tab: null, tabSite: null, codes: [], accounts: {}, log: [],
-           busy: null, progress: null, filter: "all", stop: false};
+const S = {site: "deliveroo", tab: null, tabSite: null, promo: null, codes: [], accounts: {}, log: [], history: [],
+           lastFind: {}, busy: null, progress: null, filter: "all", stop: false};
+const REFIND_AFTER = 30 * 60 * 1000;      // Try codes searches again if the last search is older than this
+const RETRY_AFTER = 14 * 24 * 3600 * 1000; // codes that failed get another go after two weeks
 
 /* ---------- storage ---------- */
 async function load() {
-  const d = await chrome.storage.local.get(["codes", "accounts", "log", "site"]);
+  const d = await chrome.storage.local.get(["codes", "accounts", "log", "site", "history", "lastFind"]);
   S.codes = d.codes || []; S.accounts = d.accounts || {}; S.log = d.log || [];
+  S.history = d.history || []; S.lastFind = d.lastFind || {};
   if (d.site && C.sites[d.site]) S.site = d.site;
 }
 const saveCodes = () => chrome.storage.local.set({codes: S.codes});
@@ -53,8 +56,14 @@ const site = () => C.sites[S.site];
 const acct = () => S.accounts[S.site] || {member: false, new: false};
 const siteCodes = () => S.codes.filter(c => c.site === S.site);
 const usable = c => { const a = S.accounts[c.site] || {}; return !((c.member_only && !a.member) || (c.new_only && !a.new)); };
-const toTry = () => siteCodes().filter(c => (c.status === "untested" || c.status === "unknown") && usable(c));
+// Worth trying on this basket: new codes, unclear ones, ones that worked before (they often work again),
+// and failures old enough that they might have been switched on since.
+const due = c => ["untested", "unknown", "works"].includes(c.status) ||
+  (["rejected", "error"].includes(c.status) && c.tested_at && Date.now() - c.tested_at > RETRY_AFTER);
+const toTry = () => siteCodes().filter(c => due(c) && usable(c));
 const onSiteTab = () => S.tab && S.tabSite === S.site;
+const promoReady = () => onSiteTab() && !!S.promo;
+const shortDate = t => new Date(t).toLocaleDateString("en-GB", {day: "numeric", month: "short"});
 
 const PINNED_TAB = Number(new URLSearchParams(location.search).get("tab")) || null; // used by the automated tests
 
@@ -79,58 +88,91 @@ async function refreshTab() {
   const detected = tab && tab.url ? C.siteForUrl(tab.url) : null; // url is only visible on sites we have access to
   if (detected && detected !== S.tabSite && !S.busy) { S.site = detected; chrome.storage.local.set({site: detected}); }
   S.tabSite = detected;
+  await askPromo();
   renderAll();
+}
+
+// Ask the page whether the promo code box is showing. The watcher script answers; tabs opened
+// before Snackhack was installed don't have it yet, so inject it once and ask again.
+async function askPromo() {
+  if (!S.tab || !S.tabSite) { S.promo = null; return; }
+  const ask = () => chrome.tabs.sendMessage(S.tab.id, {type: "get-promo-state"});
+  try { S.promo = (await ask()).state; }
+  catch (e) {
+    try {
+      await chrome.scripting.executeScript({target: {tabId: S.tab.id},
+        files: ["lib/config.js", "lib/extract.js", "content/tester.js", "content/watch.js"]});
+      S.promo = (await ask()).state;
+    } catch (e2) { S.promo = null; }
+  }
 }
 
 /* ---------- finding codes ---------- */
 function htmlToText(html) {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script, style, noscript, svg").forEach(n => n.remove());
-  doc.querySelectorAll("p, div, li, h1, h2, h3, h4, article, section, br, tr, a").forEach(n => n.append("\n"));
-  const embedded = html.match(/"(?:voucherCode|voucher_code|couponCode|promoCode)"\s*:\s*"[A-Z0-9_-]{4,20}"/g) || [];
-  return (doc.body ? doc.body.textContent : "") + "\n" + embedded.join("\n");
+  doc.querySelectorAll("style, noscript, svg").forEach(n => n.remove());
+  doc.querySelectorAll("script").forEach(n => n.remove());
+  doc.querySelectorAll("p, div, li, h1, h2, h3, h4, article, section, br, tr, a, button").forEach(n => n.append("\n"));
+  // Plus codes voucher sites hide in reveal buttons and page data, each kept on its own.
+  return (doc.body ? doc.body.textContent : "") + "\n\n" + X.hiddenCodes(html);
 }
 
-async function fetchSource(src, query, nameRe) {
-  const url = src.url.replace("{q}", encodeURIComponent(query));
-  const r = await fetch(url, {credentials: "omit"});
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  if (src.kind === "reddit_json") {
-    const posts = ((await r.json()).data || {}).children || [];
-    return posts.map(p => `${p.data.title || ""}\n${p.data.selftext || ""}`).filter(t => nameRe.test(t)).join("\n\n");
-  }
-  return htmlToText(await r.text());
+async function fetchText(src, nameRe) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
+  try {
+    const r = await fetch(src.url, {credentials: "omit", signal: ctl.signal});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (src.kind === "reddit_json") {
+      const posts = ((await r.json()).data || {}).children || [];
+      const texts = posts.map(p => `${p.data.title || ""}\n${p.data.selftext || ""}`);
+      // Site-wide searches pick up unrelated posts; subreddit searches are already on topic.
+      return (src.url.includes("/r/") ? texts : texts.filter(t => nameRe.test(t))).join("\n\n");
+    }
+    return htmlToText(await r.text());
+  } finally { clearTimeout(timer); }
+}
+
+async function inParallel(items, limit, fn) {
+  const out = new Array(items.length); let next = 0;
+  await Promise.all(Array.from({length: Math.min(limit, items.length)}, async () => {
+    while (next < items.length) {
+      const i = next++;
+      if (S.stop) throw new Error("Stopped.");
+      try { out[i] = {ok: true, value: await fn(items[i])}; } catch (e) { out[i] = {ok: false, error: e}; }
+    }
+  }));
+  return out;
 }
 
 async function findCodes() {
-  const s = site(), a = acct(), extra = $("query").value.trim();
+  const s = site(), a = acct();
   const nameRe = new RegExp(s.query.split(/\s+/).join("\\s*"), "i");
-  const queries = [[[s.query, extra].filter(Boolean).join(" "), ""]];
-  if (a.member) queries.push([[s.member_query, extra].filter(Boolean).join(" "), ` (${s.member_name})`]);
-  const results = [];
-  for (const [query, label] of queries) {
-    for (const src of C.sources) {
-      if (S.stop) throw new Error("Stopped.");
-      setBusy(`Searching ${src.name}${label}`);
-      try {
-        const codes = X.findCodes(await fetchSource(src, query, nameRe));
-        const n = Object.keys(codes).length;
-        log(`${src.name}${label}: ${n} possible code${n === 1 ? "" : "s"}.`);
-        results.push([src.name, codes]);
-      } catch (e) {
-        log(`${src.name}${label} didn't load (${e.message}). Skipping.`, "warn");
-      }
-    }
-  }
-  const ranked = X.mergeCandidates(results).slice(0, 30);
+  const sources = C.sourceUrls(S.site, a.member);
+  let done = 0;
+  setBusy(`Checking ${sources.length} sources`);
+  const res = await inParallel(sources, 5, async src => {
+    const codes = X.findCodes(await fetchText(src, nameRe));
+    setBusy(`Checking sources ${++done}/${sources.length}`);
+    return codes;
+  });
+  const results = [], failed = [];
+  res.forEach((r, i) => r.ok ? results.push([sources[i].name, r.value]) : failed.push(sources[i].name));
+  const ranked = X.mergeCandidates(results).slice(0, 40);
+  let fresh = 0;
   for (const c of ranked) {
     const exists = S.codes.some(x => x.site === S.site && x.code === c.code);
+    if (!exists) fresh++;
     upsert(S.site, c.code, {sources: c.sources, context: c.context, expired_hint: c.expired_hint,
                             member_only: c.member_only, new_only: c.new_only, ...(exists ? {} : {status: "untested"})});
   }
+  S.lastFind[S.site] = Date.now();
+  await chrome.storage.local.set({lastFind: S.lastFind});
   await saveCodes();
+  const loaded = sources.length - failed.length;
+  log(`Checked ${sources.length} sources (${loaded} loaded${failed.length ? `, ${[...new Set(failed)].join(", ")} unavailable` : ""}).`,
+      loaded ? "info" : "warn");
   const nm = ranked.filter(c => c.member_only).length;
-  log(ranked.length ? `Found ${ranked.length} codes for ${s.name}${nm ? ` (${nm} for ${s.member_name})` : ""}.`
+  log(ranked.length ? `Found ${ranked.length} codes for ${s.name}, ${fresh} new${nm ? `, ${nm} for ${s.member_name}` : ""}.`
                     : `No codes found for ${s.name} right now. You can paste your own.`, ranked.length ? "good" : "info");
 }
 
@@ -149,58 +191,82 @@ async function pause(seconds) {
   while (Date.now() < end) { if (S.stop) throw new Error("Stopped."); await sleep(200); }
 }
 
+function record(code, r) {
+  const c = upsert(S.site, code, {status: r.status, message: r.message, saving: r.saving, tested_at: Date.now()});
+  c.tries = (c.tries || 0) + 1;
+  if (r.status === "works") {
+    c.wins = (c.wins || 0) + 1;
+    c.best_saving = Math.max(c.best_saving || 0, r.saving || 0) || null;
+  }
+  return c;
+}
+
 async function tryCodes(only) {
-  if (!onSiteTab()) { toast(`Open your ${site().name} checkout in this tab first.`); return; }
+  if (!promoReady()) { toast(`Go to your ${site().name} checkout and open the promo code box first.`); return; }
   const tabId = S.tab.id, s = site(), t = C.testing, a = acct();
+  // One tap: search first if we haven't recently, so there's always something fresh to try.
+  if (!only && (!toTry().length || Date.now() - (S.lastFind[S.site] || 0) > REFIND_AFTER)) await findCodes();
+  setBusy("Trying codes");
   let codes = only;
   if (!codes) {
-    const pool = siteCodes().filter(c => c.status === "untested" || c.status === "unknown");
+    const pool = siteCodes().filter(due);
     const skip = pool.filter(c => !usable(c));
     if (skip.length) log(`Skipping ${skip.length} code${skip.length === 1 ? "" : "s"} for members or new customers only.`);
     codes = pool.filter(usable)
-      .sort((x, y) => (x.expired_hint - y.expired_hint) || ((a.member && y.member_only) - (a.member && x.member_only))
+      .sort((x, y) => ((y.status === "works") - (x.status === "works")) || ((y.best_saving || 0) - (x.best_saving || 0))
+                      || (x.expired_hint - y.expired_hint) || ((a.member && y.member_only) - (a.member && x.member_only))
                       || ((y.sources?.length || 0) - (x.sources?.length || 0)))
       .map(c => c.code);
   }
   codes = codes.slice(0, t.max_codes_per_run);
-  if (!codes.length) { toast("Nothing to try. Find codes or paste one first."); return; }
+  if (!codes.length) { log("No codes to try yet. Paste one in, or check the app's own offers page."); return; }
   log(`Trying ${codes.length} code${codes.length === 1 ? "" : "s"} on ${s.name}. Leave the page alone while it runs.`);
+  const run = {site: S.site, at: Date.now(), results: []};
   const working = []; let applied = null;
-  for (let i = 0; i < codes.length; i++) {
-    const code = codes[i];
-    if (S.stop) throw new Error("Stopped.");
-    S.progress = {code, i: i + 1, n: codes.length}; renderHero(); renderCoupons();
-    const r = await pageTry(tabId, code) || {status: "error", message: "The page didn't respond", saving: null};
-    upsert(S.site, code, {status: r.status, message: r.message, saving: r.saving, tested_at: Date.now()});
-    await saveCodes(); renderAll();
-    log(`${code}: ${STATUS[r.status] || r.status}. ${r.message}`, r.status === "works" ? "good" : r.status === "rejected" ? "info" : "warn");
-    if (r.status === "error") break;
-    if (r.status === "works") {
-      working.push([r.saving || 0, code]); applied = code;
-      if (await pageRemove(tabId, code)) applied = null;
-      else if (i < codes.length - 1) { log("Couldn't remove it to try the rest, so stopping with this code applied.", "warn"); break; }
+  try {
+    for (let i = 0; i < codes.length; i++) {
+      const code = codes[i];
+      if (S.stop) throw new Error("Stopped.");
+      S.progress = {code, i: i + 1, n: codes.length}; renderHero(); renderCoupons();
+      const r = await pageTry(tabId, code) || {status: "error", message: "The page didn't respond", saving: null};
+      record(code, r);
+      run.results.push({code, status: r.status, saving: r.saving});
+      await saveCodes(); renderAll();
+      log(`${code}: ${STATUS[r.status] || r.status}. ${r.message}`, r.status === "works" ? "good" : r.status === "rejected" ? "info" : "warn");
+      if (r.status === "error") break;
+      if (r.status === "works") {
+        working.push([r.saving || 0, code]); applied = code;
+        if (await pageRemove(tabId, code)) applied = null;
+        else if (i < codes.length - 1) { log("Couldn't remove it to try the rest, so stopping with this code applied.", "warn"); break; }
+      }
+      if (i < codes.length - 1) await pause(t.min_delay_seconds + Math.random() * (t.max_delay_seconds - t.min_delay_seconds));
     }
-    if (i < codes.length - 1) await pause(t.min_delay_seconds + Math.random() * (t.max_delay_seconds - t.min_delay_seconds));
-  }
-  S.progress = null;
-  if (working.length) {
-    working.sort((x, y) => y[0] - x[0]);
-    const best = working[0][1];
-    if (applied !== best) {
-      if (applied) await pageRemove(tabId, applied);
-      await sleep(1500);
-      await pageTry(tabId, best);
+  } finally {
+    S.progress = null;
+    if (working.length) {
+      working.sort((x, y) => y[0] - x[0]);
+      const [bestSaving, best] = working[0];
+      if (applied !== best) {
+        if (applied) await pageRemove(tabId, applied);
+        await sleep(1500);
+        await pageTry(tabId, best);
+      }
+      run.best = best; run.saving = bestSaving || null;
+      log(`Best code: ${best}${bestSaving ? `, saving ${gbp(bestSaving)}` : ""}. It's applied in your basket now.`, "good");
+    } else if (run.results.length) {
+      log("None of those worked this time. Check the app's own offers page too.");
     }
-    log(`Best code: ${best}. It's applied in your basket now.`, "good");
-  } else {
-    log("None of those worked. Try a restaurant search, or check the app's own offers page.");
+    if (run.results.length) {
+      S.history.push(run); S.history = S.history.slice(-200);
+      await chrome.storage.local.set({history: S.history});
+    }
   }
 }
 
 async function applyCode(code) {
   if (!onSiteTab()) { toast(`Open your ${site().name} checkout in this tab first.`); return; }
-  const r = await pageTry(S.tab.id, code);
-  upsert(S.site, code, {status: r.status, message: r.message, saving: r.saving, tested_at: Date.now()});
+  const r = await pageTry(S.tab.id, code) || {status: "error", message: "The page didn't respond", saving: null};
+  record(code, r);
   await saveCodes();
   log(`${code}: ${STATUS[r.status]}. ${r.message}`, r.status === "works" ? "good" : "info");
 }
@@ -228,11 +294,17 @@ function renderTabs() {
 
 function renderWhere() {
   const w = $("where"), s = site();
-  w.className = "card where" + (onSiteTab() ? " on" : "");
+  const states = {
+    box: ["on", "✓", "Promo code box found", "Hit Try codes and Snackhack does the rest."],
+    opener: ["on", "✓", `You're at the ${s.name} checkout`, "Snackhack will open the promo code box for you."],
+  };
   if (onSiteTab()) {
-    w.innerHTML = `<div class="w-icon">✓</div><div class="w-text"><b>You're on ${esc(s.name)}</b>
-      <span>Fill your basket and go to checkout, then hit Try codes.</span></div>`;
+    const [cls, icon, title, text] = states[S.promo] ||
+      ["wait", "🛒", `You're on ${s.name}`, "Go to checkout and open the promo code box. Try codes unlocks when Snackhack sees it."];
+    w.className = `card where ${cls}`;
+    w.innerHTML = `<div class="w-icon">${icon}</div><div class="w-text"><b>${esc(title)}</b><span>${esc(text)}</span></div>`;
   } else {
+    w.className = "card where";
     w.innerHTML = `<div class="w-icon">🛵</div><div class="w-text"><b>Open ${esc(s.name)} to try codes</b>
       <span>You can find codes from anywhere.</span></div><button class="btn sm soft" id="btnOpen">Open</button>`;
     $("btnOpen").onclick = () => chrome.tabs.create({url: s.start_url});
@@ -240,14 +312,28 @@ function renderWhere() {
 }
 
 function renderSteps() {
-  const busy = !!S.busy;
+  const busy = !!S.busy, finding = busy && /sources|Finding/.test(S.busy);
   $("btnFind").disabled = busy;
-  $("btnTest").disabled = busy || !onSiteTab();
+  $("btnTest").disabled = busy || !promoReady();
   $("btnStop").hidden = !busy;
   const n = toTry().length;
-  $("btnTest").textContent = busy && S.busy !== "Finding codes" && !S.busy.startsWith("Searching") ? "Trying codes…"
-    : n ? `Try ${Math.min(n, C.testing.max_codes_per_run)} code${n === 1 ? "" : "s"}` : "Try codes";
-  $("btnFind").textContent = busy && (S.busy === "Finding codes" || S.busy.startsWith("Searching")) ? "Searching…" : "Find codes";
+  $("btnTest").textContent = busy && !finding ? "Trying codes…"
+    : n ? `Try ${Math.min(n, C.testing.max_codes_per_run)} code${n === 1 ? "" : "s"}` : "Find & try codes";
+  $("btnFind").textContent = finding ? "Searching…" : "Find codes";
+  $("btnTest").title = promoReady() ? "" : "Unlocks when you're on the promo code step at checkout";
+}
+
+function renderStats() {
+  const runs = S.history.filter(r => r.site === S.site);
+  const all = S.history;
+  const saved = runs.reduce((sum, r) => sum + (r.saving || 0), 0), savedAll = all.reduce((sum, r) => sum + (r.saving || 0), 0);
+  const tried = runs.reduce((n, r) => n + r.results.length, 0), worked = runs.reduce((n, r) => n + r.results.filter(x => x.status === "works").length, 0);
+  $("stats").hidden = !runs.length && !all.length;
+  $("stats").innerHTML = `
+    <div class="stat"><b>${gbp(saved)}</b><span>saved on ${esc(site().name)}</span></div>
+    <div class="stat"><b>${runs.length}</b><span>order${runs.length === 1 ? "" : "s"} checked</span></div>
+    <div class="stat"><b>${worked}/${tried}</b><span>codes worked</span></div>
+    ${all.length !== runs.length ? `<div class="stat-all">${gbp(savedAll)} saved across all apps</div>` : ""}`;
 }
 
 function renderAccount() {
@@ -276,15 +362,15 @@ function renderHero() {
     h.innerHTML = `<div class="hero-main"><span class="hero-kicker">Best code${working.length > 1 ? ` of ${working.length}` : ""}</span>
         <span class="hero-big">${best.saving ? `<span class="sun">${gbp(best.saving)}</span> off` : "It works"}</span>
         <span class="hero-sub"><code>${esc(best.code)}</code></span></div>
-      <button class="btn sm on-brand" id="applyBest" ${S.busy || !onSiteTab() ? "disabled" : ""}>Apply</button>`;
+      <button class="btn sm on-brand" id="applyBest" ${S.busy || !promoReady() ? "disabled" : ""}>Apply</button>`;
     $("applyBest").onclick = () => job("Applying code", () => applyCode(best.code));
     return;
   }
   const n = toTry().length;
   const [icon, title, text] = siteCodes().length
-    ? (n ? ["🎟️", `${n} code${n === 1 ? "" : "s"} ready to try`, "At checkout? Hit Try codes."]
-         : ["🔍", "Nothing worked yet", "Try a restaurant search, or check the app's offers page."])
-    : ["🍟", "No codes yet", `Hit Find codes and we'll search the deal sites for ${site().name}.`];
+    ? (n ? ["🎟️", `${n} code${n === 1 ? "" : "s"} ready to try`, "At the promo code step? Hit Try codes."]
+         : ["🔍", "Nothing worked yet", "Hit Find & try codes for a fresh search, or check the app's offers page."])
+    : ["🍟", "No codes yet", `Get to the promo code step and hit Find & try codes, or Find codes to look now.`];
   h.innerHTML = `<div class="hero-idle"><div class="hero-icon" aria-hidden="true">${icon}</div><div><h2>${esc(title)}</h2><p>${esc(text)}</p></div></div>`;
 }
 
@@ -303,7 +389,7 @@ function renderCoupons() {
   if (S.filter === "rejected") list = all.filter(c => c.status === "rejected" || c.status === "error");
   list = [...list].sort((x, y) => (ORDER[x.status] - ORDER[y.status]) || ((y.saving || 0) - (x.saving || 0))
                                   || (usable(y) - usable(x)) || ((y.sources?.length || 0) - (x.sources?.length || 0)));
-  const busy = !!S.busy, testing = S.progress ? S.progress.code : null, canTry = onSiteTab() && !busy;
+  const busy = !!S.busy, testing = S.progress ? S.progress.code : null, canTry = promoReady() && !busy;
   $("empty").hidden = list.length > 0;
   $("empty").innerHTML = all.length ? "<b>Nothing in this list</b><span>Pick another filter.</span>"
                                     : "<b>Your codes show up here</b><span>Found codes, and ones you paste in, appear as cards.</span>";
@@ -316,8 +402,9 @@ function renderCoupons() {
     return `<article class="coupon is-${st}">
       <div class="c-main"><div class="c-code">${esc(c.code)}</div><div class="tags">${tags.join("")}</div>
         ${c.message ? `<div class="c-msg">${esc(c.message)}</div>` : ""}
-        ${c.sources?.length ? `<div class="c-src">From ${esc(c.sources.join(", "))}</div>` : ""}</div>
-      <div class="c-side"><div class="c-saving ${c.saving ? "" : "none"}">${c.saving ? gbp(c.saving) : "–"}</div>
+        ${c.tested_at ? `<div class="c-src">Tried ${c.tries || 1}× · last ${shortDate(c.tested_at)}${c.wins ? ` · worked ${c.wins}×` : ""}</div>` : ""}
+        ${c.sources?.length ? `<div class="c-src">From ${esc(c.sources.slice(0, 4).join(", "))}${c.sources.length > 4 ? ` +${c.sources.length - 4}` : ""}</div>` : ""}</div>
+      <div class="c-side"><div class="c-saving ${c.best_saving || c.saving ? "" : "none"}">${c.best_saving || c.saving ? gbp(c.best_saving || c.saving) : "–"}</div>
         <div class="c-actions">
           ${c.status === "works" ? `<button class="btn sm primary" data-act="apply" data-code="${esc(c.code)}" ${canTry ? "" : "disabled"}>Apply</button>`
                                  : `<button class="btn sm" data-act="try" data-code="${esc(c.code)}" ${canTry ? "" : "disabled"}>Try</button>`}
@@ -340,7 +427,7 @@ function renderLog() {
 }
 function renderBusy() { $("busyDot").className = "pulse" + (S.busy ? " busy" : ""); renderLog(); }
 
-function renderAll() { renderTabs(); renderWhere(); renderSteps(); renderAccount(); renderHero(); renderCoupons(); renderBusy(); }
+function renderAll() { renderTabs(); renderWhere(); renderSteps(); renderAccount(); renderHero(); renderStats(); renderCoupons(); renderBusy(); }
 
 /* ---------- events ---------- */
 $("btnFind").onclick = () => job("Finding codes", findCodes);
@@ -355,6 +442,12 @@ $("addForm").onsubmit = async e => {
   upsert(S.site, code, {sources: ["Added by you"]});
   await saveCodes(); $("addCode").value = ""; toast(`Added ${code}`); renderAll();
 };
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg && msg.type === "promo-state" && sender.tab && S.tab && sender.tab.id === S.tab.id) {
+    S.promo = msg.state; if (!S.busy) renderAll();
+  }
+});
+setInterval(async () => { if (!S.busy && S.tabSite) { const before = S.promo; await askPromo(); if (S.promo !== before) renderAll(); } }, 4000);
 chrome.tabs.onActivated.addListener(refreshTab);
 if (OWN_WINDOW) chrome.windows.onFocusChanged.addListener(() => { if (!S.busy) refreshTab(); });
 chrome.tabs.onUpdated.addListener((id, info) => { if (info.url || info.status === "complete") refreshTab(); });
@@ -362,6 +455,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || S.busy) return;
   if (changes.codes) S.codes = changes.codes.newValue || [];
   if (changes.accounts) S.accounts = changes.accounts.newValue || {};
+  if (changes.history) S.history = changes.history.newValue || [];
   renderAll();
 });
 

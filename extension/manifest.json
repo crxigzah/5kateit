@@ -2,20 +2,63 @@
   "manifest_version": 3,
   "name": "Snackhack",
   "short_name": "Snackhack",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Hack your takeaway bill. Finds Deliveroo, Just Eat and Uber Eats promo codes and tries them in your basket.",
-  "icons": {"16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png"},
-  "action": {"default_title": "Snackhack", "default_icon": {"16": "icons/icon16.png", "32": "icons/icon32.png"}},
-  "side_panel": {"default_path": "panel.html"},
-  "background": {"service_worker": "background.js"},
-  "permissions": ["storage", "scripting", "sidePanel"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Snackhack",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "scripting",
+    "sidePanel"
+  ],
   "host_permissions": [
     "https://*.deliveroo.co.uk/*",
     "https://*.just-eat.co.uk/*",
     "https://*.ubereats.com/*",
-    "https://www.hotukdeals.com/*",
-    "https://www.latestdeals.co.uk/*",
-    "https://www.reddit.com/*"
+    "https://*.hotukdeals.com/*",
+    "https://*.latestdeals.co.uk/*",
+    "https://*.reddit.com/*",
+    "https://*.vouchercodes.co.uk/*",
+    "https://*.myvouchercodes.co.uk/*",
+    "https://*.groupon.co.uk/*",
+    "https://*.couponfollow.com/*",
+    "https://*.wethrift.com/*",
+    "https://*.discoup.com/*",
+    "https://*.savoo.co.uk/*",
+    "https://*.dealhack.com/*"
   ],
-  "minimum_chrome_version": "116"
+  "minimum_chrome_version": "116",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.deliveroo.co.uk/*",
+        "https://*.just-eat.co.uk/*",
+        "https://*.ubereats.com/*"
+      ],
+      "js": [
+        "lib/config.js",
+        "lib/extract.js",
+        "content/tester.js",
+        "content/watch.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
 }
