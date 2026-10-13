@@ -138,11 +138,22 @@ class Settings:
     def all_accounts(self, sites):
         return {k: self.account(k) for k in sites}
 
+    def browser(self):
+        return self.data.get("browser")
+
+    def set_browser(self, browser_id):
+        with self.lock:
+            self.data["browser"] = browser_id
+            self._write()
+
+    def _write(self):
+        tmp = self.path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(self.data, indent=2), encoding="utf-8")
+        tmp.replace(self.path)
+
     def set_account(self, site, **fields):
         with self.lock:
             a = self.data.setdefault("accounts", {}).setdefault(site, {})
             a.update({k: bool(v) for k, v in fields.items() if k in ("member", "new")})
-            tmp = self.path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(self.data, indent=2), encoding="utf-8")
-            tmp.replace(self.path)
+            self._write()
         return self.account(site)

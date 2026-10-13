@@ -23,8 +23,6 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
       - run: python -m pytest -q
-        env:
-          TCF_BROWSER: chromium
 
   windows:
     needs: test

@@ -5,7 +5,7 @@ const STATUS = {works:"Works", rejected:"Didn't work", unknown:"Unclear", error:
 const ORDER = {works:0, untested:1, unknown:2, error:3, rejected:4};
 const FILTERS = [["all","All"],["works","Working"],["todo","To try"],["rejected","Didn't work"]];
 
-let S = {sites:{}, codes:[], accounts:{}, status:{busy:null, browser:false}, site:null, progress:null,
+let S = {sites:{}, codes:[], accounts:{}, browsers:[], browser:null, status:{busy:null, browser:false}, site:null, progress:null,
          filter:"all", lastLog:null, opened:{}};
 try { S.site = localStorage.getItem("sh.site"); } catch (e) {}
 
@@ -49,7 +49,7 @@ function renderTabs() {
 /* ---------- guide ---------- */
 function renderSteps() {
   const busy = !!S.status.busy;
-  const opened = S.status.browser && S.opened[S.site];
+  const opened = S.status.browser && (S.opened[S.site] || siteCodes().length > 0);
   const hasCodes = siteCodes().length > 0;
   const current = !opened ? 1 : !hasCodes ? 2 : 3;
   [1, 2, 3].forEach(n => {
@@ -178,13 +178,27 @@ function addLog(e) {
 }
 function renderBusy() { $("busyDot").className = "pulse" + (S.status.busy ? " busy" : ""); }
 
-function renderAll() { renderTabs(); renderSteps(); renderAccount(); renderHero(); renderCoupons(); renderBusy(); }
+function renderBrowser() {
+  const sel = $("browserPick");
+  if (!S.browsers.length) {
+    sel.innerHTML = `<option>No browser found</option>`; sel.disabled = true; $("btnOpen").disabled = true; return;
+  }
+  sel.innerHTML = S.browsers.map(b => `<option value="${esc(b.id)}" ${b.id === S.browser ? "selected" : ""}>${esc(b.name)}</option>`).join("");
+  sel.disabled = !!S.status.busy;
+}
+
+function renderAll() { renderTabs(); renderSteps(); renderBrowser(); renderAccount(); renderHero(); renderCoupons(); renderBusy(); }
 
 /* ---------- actions ---------- */
 $("btnOpen").onclick = async () => { const j = await api("/api/open", {site: S.site}); if (j.ok) S.opened[S.site] = true; };
 $("btnFind").onclick = () => api("/api/find", {site: S.site, query: $("query").value});
 $("btnTest").onclick = () => api("/api/test", {site: S.site});
 $("btnStop").onclick = () => api("/api/stop", {});
+$("browserPick").onchange = async e => {
+  const j = await api("/api/browser", {id: e.target.value});
+  if (j.ok) { S.browser = j.browser; toast(`${S.browsers.find(b => b.id === j.browser)?.name} it is. Log in there the first time.`); }
+  renderBrowser();
+};
 $("accMember").onchange = e => saveAccount("member", e.target.checked);
 $("accNew").onchange = e => saveAccount("new", e.target.checked);
 $("addForm").onsubmit = async e => {
@@ -201,7 +215,8 @@ async function saveAccount(field, value) {
 
 (async function boot() {
   const st = await (await fetch("/api/state")).json();
-  Object.assign(S, {sites: st.sites, codes: st.codes, accounts: st.accounts || {}, status: st.status, maxCodes: st.max_codes});
+  Object.assign(S, {sites: st.sites, codes: st.codes, accounts: st.accounts || {}, status: st.status, maxCodes: st.max_codes,
+                    browsers: st.browsers || [], browser: st.browser});
   if (!S.sites[S.site]) S.site = Object.keys(S.sites)[0];
   $("cfgPath").textContent = st.config_path;
   st.log.forEach(addLog);

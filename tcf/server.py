@@ -6,6 +6,7 @@ import time
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 
+from . import browsers
 from .engine import Engine
 from .store import Settings, Wallet, config_path, load_config, resource_dir
 
@@ -55,6 +56,8 @@ def create_app():
         return jsonify({
             "sites": {k: {"name": v["name"], "member_name": v.get("member_name", "")} for k, v in cfg["sites"].items()},
             "accounts": settings.all_accounts(cfg["sites"]),
+            "browsers": [{"id": b["id"], "name": b["name"]} for b in browsers.installed()],
+            "browser": (browsers.pick(settings.browser()) or {}).get("id"),
             "codes": wallet.all(),
             "status": engine.status(),
             "log": [m["data"] for m in history],
@@ -103,6 +106,15 @@ def create_app():
             return jsonify({"ok": False, "error": "Unknown app"}), 400
         acct = settings.set_account(site, **{k: request.json[k] for k in ("member", "new") if k in request.json})
         return jsonify({"ok": True, "account": acct})
+
+    @app.post("/api/browser")
+    def set_browser():
+        bid = request.json.get("id")
+        if bid not in {b["id"] for b in browsers.installed()}:
+            return jsonify({"ok": False, "error": "That browser isn't installed"}), 400
+        settings.set_browser(bid)
+        emit("status", engine.status())
+        return jsonify({"ok": True, "browser": bid})
 
     @app.post("/api/stop")
     def stop():

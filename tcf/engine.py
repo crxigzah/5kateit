@@ -1,5 +1,4 @@
 """Browser automation. All Playwright calls run on one worker thread."""
-import os
 import queue
 import random
 import re
@@ -9,7 +8,8 @@ import traceback
 from urllib.parse import quote
 
 from . import extract, page_js
-from .store import load_config, profile_dir
+from . import browsers
+from .store import load_config
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
@@ -28,6 +28,7 @@ class Engine:
         self.busy = None          # name of the job running, or None
         self.cancel = threading.Event()
         self.pw = None
+        self.browser = None
         self.ctx = None
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
@@ -43,7 +44,7 @@ class Engine:
         return True
 
     def status(self):
-        return {"busy": self.busy, "browser": self.ctx is not None}
+        return {"busy": self.busy, "browser": self.browser_running()}
 
     def _run(self):
         while True:
@@ -58,6 +59,7 @@ class Engine:
                 self.log(f"Error: {e}", level="error")
                 traceback.print_exc()
             finally:
+                self._disconnect()
                 self.busy = None
                 self.emit("status", self.status())
 
@@ -79,41 +81,49 @@ class Engine:
             time.sleep(0.2)
 
     # ---------- browser ----------
-    def _ensure_browser(self):
+    def _browser(self):
+        chosen = self.settings.browser() if self.settings else None
+        b = browsers.pick(chosen)
+        if not b:
+            raise RuntimeError("No supported browser found. Install Microsoft Edge, Chrome, Brave or Opera.")
+        return b
+
+    def _connect(self):
+        """Attach to the browser Snackhack opened. Returns False if it isn't running."""
         if self.ctx is not None:
-            try:
-                self.ctx.pages  # raises if the window was closed
-                return
-            except Exception:
-                self.ctx = None
+            return True
+        port = browsers.debug_port(browsers.profile_dir(self._browser()))
+        if not port:
+            return False
         from playwright.sync_api import sync_playwright
         if self.pw is None:
             self.pw = sync_playwright().start()
-        forced = os.environ.get("TCF_BROWSER")
-        channels = [forced] if forced else ["msedge", "chrome", None]
-        headless = os.environ.get("TCF_HEADLESS") == "1"
-        last = None
-        for ch in channels:
-            ch = None if ch in (None, "", "chromium") else ch
-            try:
-                self.ctx = self.pw.chromium.launch_persistent_context(
-                    str(profile_dir()), channel=ch, headless=headless, no_viewport=True,
-                    ignore_default_args=["--enable-automation"],
-                    args=["--disable-blink-features=AutomationControlled",
-                          # keep the user's synced extensions (coupon/cashback add-ons) out of this profile
-                          "--disable-sync", "--disable-features=msImplicitSignin,msEdgeSyncConsent"])
-                self.ctx.on("close", lambda *_: self._on_closed())
-                self.log(f"Opened {ch or 'Chromium'} with your saved profile.")
-                self.emit("status", self.status())
-                return
-            except Exception as e:
-                last = e
-        raise RuntimeError("Couldn't start a browser. Install Microsoft Edge or Google Chrome. "
-                           f"Details: {last}")
+        self.browser = self.pw.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", timeout=20000)
+        self.ctx = self.browser.contexts[0] if self.browser.contexts else self.browser.new_context()
+        return True
 
-    def _on_closed(self):
-        self.ctx = None
-        self.emit("status", self.status())
+    def _disconnect(self):
+        """Detach so the site sees an ordinary browser again (the window stays open)."""
+        if self.browser is not None:
+            try:
+                self.browser.close()  # for a connected browser this only disconnects
+            except Exception:
+                pass
+        self.browser = self.ctx = None
+
+    def _need_browser(self):
+        if self._connect():
+            return
+        b = self._browser()
+        if not browsers.launch(b, "about:blank"):
+            raise RuntimeError(f"{b['name']} didn't start. Close any {b['name']} windows Snackhack opened and try again.")
+        self._connect()
+
+    def browser_running(self):
+        try:
+            return browsers.debug_port(browsers.profile_dir(self._browser())) is not None
+        except Exception:
+            return False
 
     def _site_page(self, site):
         if self.ctx is None:
@@ -125,22 +135,19 @@ class Engine:
     # ---------- jobs ----------
     def open_site(self, site):
         self.cfg = load_config()
-        self._ensure_browser()
-        s = self.cfg["sites"][site]
-        page = self._site_page(site)
-        if page is None:
-            blank = [p for p in self.ctx.pages if p.url in ("about:blank", "")]
-            page = blank[0] if blank else self.ctx.new_page()
-            page.goto(s["start_url"], wait_until="domcontentloaded", timeout=45000)
-        page.bring_to_front()
-        self.log(f"{s['name']} is open. Log in, fill your basket and go to checkout, then come back and test codes.")
+        s, b = self.cfg["sites"][site], self._browser()
+        if self._connect() and self._site_page(site):
+            self._site_page(site).bring_to_front()
+        elif not browsers.launch(b, s["start_url"]):
+            raise RuntimeError(f"{b['name']} didn't start. Try again, or pick a different browser.")
+        self.log(f"{s['name']} is open in {b['name']}. Log in, fill your basket and go to checkout, then come back and try codes.")
 
     def _account(self, site):
         return self.settings.account(site) if self.settings else {"member": False, "new": False}
 
     def find_codes(self, site, extra_query=""):
         self.cfg = load_config()
-        self._ensure_browser()
+        self._need_browser()
         s = self.cfg["sites"][site]
         acct = self._account(site)
         name_re = re.compile(re.sub(r"\s+", r"\\s*", re.escape(s["query"]).replace(r"\ ", " ")), re.I)
@@ -201,7 +208,7 @@ class Engine:
     def test_codes(self, site, codes=None):
         self.cfg = load_config()
         s, d, t = self.cfg["sites"][site], self.cfg["defaults"], self.cfg["testing"]
-        page = self._site_page(site)
+        page = self._site_page(site) if self._connect() else None
         if page is None:
             self.log(f"Open {s['name']} and go to the checkout page first.", level="error")
             return
@@ -260,7 +267,7 @@ class Engine:
     def apply_code(self, site, code):
         self.cfg = load_config()
         s, d, t = self.cfg["sites"][site], self.cfg["defaults"], self.cfg["testing"]
-        page = self._site_page(site)
+        page = self._site_page(site) if self._connect() else None
         if page is None:
             self.log(f"Open {s['name']} checkout first.", level="error")
             return

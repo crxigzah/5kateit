@@ -26,9 +26,18 @@ def env(tmp_path, monkeypatch):
     }))
     monkeypatch.setenv("TCF_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("TCF_HEADLESS", "1")
-    monkeypatch.setenv("TCF_BROWSER", "chromium")
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        monkeypatch.setenv("TCF_CHROMIUM_PATH", pw.chromium.executable_path)
     yield
     srv.shutdown()
+
+
+def close_browser(engine):
+    def _close():
+        if engine._connect():
+            engine.browser.new_browser_cdp_session().send("Browser.close")
+    run(engine, _close)
 
 
 def run(engine, fn, *args):
@@ -59,16 +68,11 @@ def test_tests_codes_and_leaves_best_applied(env):
     assert by["TENOFF"]["status"] == "works" and by["TENOFF"]["saving"] == 2.10
     assert by["SAVE5"]["status"] == "works" and by["SAVE5"]["saving"] == 5.0
 
-    page = engine._site_page("mock")
     total = {}
-    engine.submit("read", lambda: total.setdefault("t", page.inner_text("#total")))
-    while engine.busy:
-        time.sleep(0.1)
+    run(engine, lambda: engine._connect() and total.setdefault("t", engine._site_page("mock").inner_text("#total")))
     assert total["t"] == "£15.99"  # best code (SAVE5) re-applied at the end
     assert any("Best code: SAVE5" in m for m in logs)
-    engine.submit("close", lambda: engine.ctx.close())
-    while engine.busy:
-        time.sleep(0.1)
+    close_browser(engine)
 
 
 def test_member_and_new_customer_codes_follow_account_settings(env):
@@ -94,6 +98,19 @@ def test_member_and_new_customer_codes_follow_account_settings(env):
     run(engine, engine.test_codes, "mock")
     assert order == ["SAVE5", "BADCODE2"]  # member deal tried first, new-customer code still skipped
     assert {c["code"]: c["status"] for c in wallet.all()}["SAVE5"] == "works"
-    engine.submit("close", lambda: engine.ctx.close())
-    while engine.busy:
-        time.sleep(0.1)
+    close_browser(engine)
+
+
+def test_browser_stays_open_and_detached_between_jobs(env):
+    from tcf import browsers
+    from tcf.engine import Engine
+    from tcf.store import Wallet
+
+    engine = Engine(Wallet(), lambda k, d: None)
+    run(engine, engine.open_site, "mock")
+    assert engine.ctx is None and engine.browser is None  # not attached while the user shops
+    assert engine.browser_running()
+    port = browsers.debug_port(browsers.profile_dir(engine._browser()))
+    run(engine, engine.open_site, "mock")  # second open reuses the same browser
+    assert browsers.debug_port(browsers.profile_dir(engine._browser())) == port
+    close_browser(engine)

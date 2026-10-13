@@ -20,7 +20,7 @@ pip install -r requirements-dev.txt
 python -m tcf
 ```
 
-Useful environment variables: `TCF_BROWSER` (`msedge`, `chrome`, `chromium`), `TCF_HEADLESS=1`, `TCF_NO_WINDOW=1`, `TCF_PORT`, `TCF_DATA_DIR`.
+Useful environment variables: `TCF_CHROMIUM_PATH` (use a specific Chromium build, e.g. in tests), `TCF_HEADLESS=1`, `TCF_NO_WINDOW=1`, `TCF_PORT`, `TCF_DATA_DIR`.
 
 ## When a site changes
 
