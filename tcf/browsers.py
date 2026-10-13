@@ -96,8 +96,9 @@ def launch(browser, url, wait=25):
         args.append("--disable-features=msImplicitSignin,msEdgeSyncConsent")
     if os.environ.get("TCF_HEADLESS") == "1":
         args.append("--headless=new")
-    if os.name != "nt" and hasattr(os, "geteuid") and os.geteuid() == 0:
-        args.append("--no-sandbox")  # only needed when running as root (CI containers)
+    if browser["id"] == "chromium" and os.name != "nt":
+        # Test-only Chromium on Linux CI: Ubuntu blocks its sandbox for plain (non-Playwright) launches.
+        args.append("--no-sandbox")
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
     subprocess.Popen(args + [url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                      stdin=subprocess.DEVNULL, creationflags=flags)
